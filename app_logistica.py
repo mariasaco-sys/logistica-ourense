@@ -172,3 +172,4 @@ with col_der:
 
     # Renderizar mapa
     st_folium(m, width="100%", height=600)
+
