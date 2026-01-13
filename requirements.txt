@@ -1,0 +1,10 @@
+streamlit
+pandas
+geopandas
+folium
+streamlit-folium
+geopy
+openpyxl
+matplotlib
+contextily
+xyzservices
