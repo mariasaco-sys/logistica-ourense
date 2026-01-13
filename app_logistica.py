@@ -81,49 +81,35 @@ with col_izq:
                     coords_temp = (busqueda.iloc[0]['Lat'], busqueda.iloc[0]['Lon'])
                     name_temp = f"{busqueda.iloc[0]['City']} (Cliente Registrado)"
             
-            # B) Buscar Online (CÓDIGO MEJORADO)
-            if not coords_temp:
-                geolocator = Nominatim(user_agent="app_logistica_pro_v2")
+            # B) Búsqueda Online Inteligente
+            if not target_coords:
+                geolocator = Nominatim(user_agent="app_logistica_pro_v4")
                 try:
-                    # LÓGICA INTELIGENTE:
-                    # Si lo que escribes son 5 números (es un CP), busca en toda España.
+                    busqueda_gps = ""
+                    
+                    # 1. Si son 5 números, busca en toda España (CP)
                     if entrada.isdigit() and len(entrada) == 5:
                         busqueda_gps = f"{entrada}, España"
+                    
+                    # 2. Si es texto, prioriza Ourense
                     else:
-                        # Si son letras (pueblo), intenta primero en Ourense
                         busqueda_gps = f"{entrada}, Ourense, España"
 
+                    # Ejecutamos la búsqueda
                     loc = geolocator.geocode(busqueda_gps, timeout=10)
                     
-                    # Si falla la primera búsqueda, intentamos una búsqueda general
-                    if not loc: 
-                        loc = geolocator.geocode(f"{entrada}, España", timeout=10)
+                    # Si falla la búsqueda, intentamos una búsqueda libre por si acaso
+                    if not loc and not entrada.isdigit():
+                         loc = geolocator.geocode(f"{entrada}, España", timeout=10)
 
                     if loc:
-                        coords_temp = (loc.latitude, loc.longitude)
-                        name_temp = loc.address.split(",")[0]
+                        target_coords = (loc.latitude, loc.longitude)
+                        target_name = loc.address.split(",")[0]
+                    else:
+                        st.warning(f"⚠️ No se encontró la dirección: {entrada}")
+
                 except Exception as e:
-                    st.warning(f"⚠️ Error de conexión: {e}")
-            # C) Guardar resultados en Session State
-            if coords_temp:
-                st.session_state['target_coords'] = coords_temp
-                st.session_state['target_name'] = name_temp
-                
-                # Calcular KM y Zona
-                km = round(geodesic(origen_ourense, coords_temp).km, 2)
-                st.session_state['km_result'] = km
-                
-                if km <= 20:
-                    st.session_state['zona_info'] = ("ZONA 1 (0-20km)", "#FFF176")
-                elif km <= 50:
-                    st.session_state['zona_info'] = ("ZONA 2 (20-50km)", "#FF8A80")
-                elif km <= 100:
-                    st.session_state['zona_info'] = ("ZONA 3 (50-100km)", "#81D4FA")
-                else:
-                    st.session_state['zona_info'] = ("ZONA 4 (>100km)", "#A5D6A7")
-            else:
-                st.error("❌ No se encontró la dirección.")
-                st.session_state['target_coords'] = None # Limpiar si falla
+                    st.error(f"⚠️ Error técnico: {e}")
 
     # MOSTRAR RESULTADOS (Leyendo de la memoria, no del botón)
     if st.session_state['target_coords']:
@@ -182,4 +168,5 @@ with col_der:
         folium.PolyLine([origen_ourense, target], color="black", weight=3).add_to(m)
 
     # Renderizar mapa
+
     st_folium(m, width="100%", height=600)
