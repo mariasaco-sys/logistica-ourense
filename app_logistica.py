@@ -40,7 +40,7 @@ def obtener_datos(archivo):
             st.error(f"Error al leer el archivo: {e}")
             return None
     else:
-        # Datos por defecto (CORREGIDO: 14 elementos en cada lista)
+        # Datos por defecto (CORREGIDO: Listas equilibradas de 14 elementos)
         data = {
             'City': ['Ourense', 'Barbadás', 'San Cibrao', 'Pereiro', 'O Carballiño', 'Ribadavia',
                      'Allariz', 'Maceda', 'Celanova', 'Xinzo', 'Monforte', 'Lalín', 'Santiago', 'Vigo'],
@@ -67,11 +67,10 @@ with col_izq:
     # --- LÓGICA DE CÁLCULO ---
     if btn_calc and entrada:
         with st.spinner("Localizando..."):
-            # 1. Inicializamos variables
             target_coords = None
             target_name = ""
             
-            # 2. Buscar en base de datos interna/Excel
+            # A) Buscar en base de datos interna/Excel
             if df_datos is not None:
                 busqueda = df_datos[
                     (df_datos['CP'].astype(str) == entrada) | 
@@ -81,19 +80,23 @@ with col_izq:
                     target_coords = (busqueda.iloc[0]['Lat'], busqueda.iloc[0]['Lon'])
                     target_name = f"{busqueda.iloc[0]['City']} (Cliente Registrado)"
             
-            # 3. Búsqueda Online Inteligente
+            # B) Búsqueda Online (SISTEMA DE 3 INTENTOS)
             if not target_coords:
-                geolocator = Nominatim(user_agent="app_logistica_final_v2")
+                geolocator = Nominatim(user_agent="app_logistica_final_v3")
                 try:
-                    busqueda_gps = ""
+                    loc = None
+                    # Intento 1: Búsqueda exacta según tipo
                     if entrada.isdigit() and len(entrada) == 5:
-                        busqueda_gps = f"{entrada}, España"
+                        loc = geolocator.geocode(f"{entrada}, España", timeout=10)
+                        # Intento 2: Si falla el CP, probar con prefijo "Código Postal"
+                        if not loc:
+                            loc = geolocator.geocode(f"Código Postal {entrada}, España", timeout=10)
                     else:
-                        busqueda_gps = f"{entrada}, Ourense, España"
-
-                    loc = geolocator.geocode(busqueda_gps, timeout=10)
+                        # Si es texto (Pueblo), priorizar Ourense
+                        loc = geolocator.geocode(f"{entrada}, Ourense, España", timeout=10)
                     
-                    if not loc and not entrada.isdigit():
+                    # Intento 3: Búsqueda desesperada (Probar en toda España sea lo que sea)
+                    if not loc:
                          loc = geolocator.geocode(f"{entrada}, España", timeout=10)
 
                     if loc:
@@ -105,7 +108,7 @@ with col_izq:
                 except Exception as e:
                     st.error(f"⚠️ Error técnico: {e}")
 
-            # 4. Guardar resultados en Memoria
+            # C) Guardar resultados
             if target_coords:
                 st.session_state['target_coords'] = target_coords
                 st.session_state['target_name'] = target_name
