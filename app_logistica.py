@@ -13,7 +13,6 @@ st.title("🚛 Calculadora Logística Interactiva")
 st.markdown("Carga tus clientes desde Excel o busca direcciones en tiempo real.")
 
 # --- 0. INICIALIZAR MEMORIA (SESSION STATE) ---
-# Esto evita que los datos desaparezcan al tocar el mapa
 if 'target_coords' not in st.session_state:
     st.session_state['target_coords'] = None
 if 'target_name' not in st.session_state:
@@ -50,7 +49,7 @@ def obtener_datos(archivo):
             'Lat': [42.3358, 42.3022, 42.2965, 42.3467, 42.4300, 42.2878,
                     42.1911, 42.2706, 42.1517, 42.0634, 42.5218, 42.6617, 42.8782, 42.2406],
             'Lon': [-7.8639, -7.8967, -7.8676, -7.8000, -8.0772, -8.1430,
-                    -7.8016, -7.6517, -7.9575, -7.7257, -7.5144, -8.1132, -8.5448, -8.7207]
+                    -7.8016, -7.6517, -7.9575, -7.7735, -7.7257, -7.5144, -8.1132, -8.5448, -8.7207]
         }
         return pd.DataFrame(data)
 
@@ -62,43 +61,42 @@ col_izq, col_der = st.columns([1, 2])
 
 with col_izq:
     st.subheader("📍 Calcular Ruta")
-    entrada = st.text_input("Escribe CP, Pueblo o Cliente:", placeholder="Ej: 32500")
+    entrada = st.text_input("Escribe CP, Pueblo o Cliente:", placeholder="Ej: 32500 o 36004")
     btn_calc = st.button("Buscar y Calcular", type="primary")
 
-    # Lógica de Cálculo (Se guarda en la memoria)
+    # --- LÓGICA DE CÁLCULO ---
     if btn_calc and entrada:
         with st.spinner("Localizando..."):
-            coords_temp = None
-            name_temp = ""
+            # 1. Inicializamos variables (ESTO EVITA EL ERROR NAMEERROR)
+            target_coords = None
+            target_name = ""
             
-            # A) Buscar en base de datos
+            # 2. Buscar en base de datos interna/Excel
             if df_datos is not None:
                 busqueda = df_datos[
                     (df_datos['CP'].astype(str) == entrada) | 
                     (df_datos['City'].str.contains(entrada, case=False, na=False))
                 ]
                 if not busqueda.empty:
-                    coords_temp = (busqueda.iloc[0]['Lat'], busqueda.iloc[0]['Lon'])
-                    name_temp = f"{busqueda.iloc[0]['City']} (Cliente Registrado)"
+                    target_coords = (busqueda.iloc[0]['Lat'], busqueda.iloc[0]['Lon'])
+                    target_name = f"{busqueda.iloc[0]['City']} (Cliente Registrado)"
             
-            # B) Búsqueda Online Inteligente
+            # 3. Búsqueda Online Inteligente (Si no estaba en Excel)
             if not target_coords:
-                geolocator = Nominatim(user_agent="app_logistica_pro_v4")
+                geolocator = Nominatim(user_agent="app_logistica_final_v1")
                 try:
                     busqueda_gps = ""
-                    
-                    # 1. Si son 5 números, busca en toda España (CP)
+                    # Si son 5 números, busca en toda España (CP)
                     if entrada.isdigit() and len(entrada) == 5:
                         busqueda_gps = f"{entrada}, España"
-                    
-                    # 2. Si es texto, prioriza Ourense
+                    # Si es texto, prioriza Ourense
                     else:
                         busqueda_gps = f"{entrada}, Ourense, España"
 
-                    # Ejecutamos la búsqueda
+                    # Ejecutar búsqueda principal
                     loc = geolocator.geocode(busqueda_gps, timeout=10)
                     
-                    # Si falla la búsqueda, intentamos una búsqueda libre por si acaso
+                    # Si falla, intentar búsqueda libre
                     if not loc and not entrada.isdigit():
                          loc = geolocator.geocode(f"{entrada}, España", timeout=10)
 
@@ -111,7 +109,28 @@ with col_izq:
                 except Exception as e:
                     st.error(f"⚠️ Error técnico: {e}")
 
-    # MOSTRAR RESULTADOS (Leyendo de la memoria, no del botón)
+            # 4. Guardar resultados en Memoria (Session State)
+            if target_coords:
+                st.session_state['target_coords'] = target_coords
+                st.session_state['target_name'] = target_name
+                
+                # Calcular KM
+                km = round(geodesic(origen_ourense, target_coords).km, 2)
+                st.session_state['km_result'] = km
+                
+                # Definir Zona
+                if km <= 20:
+                    st.session_state['zona_info'] = ("ZONA 1 (0-20km)", "#FFF176")
+                elif km <= 50:
+                    st.session_state['zona_info'] = ("ZONA 2 (20-50km)", "#FF8A80")
+                elif km <= 100:
+                    st.session_state['zona_info'] = ("ZONA 3 (50-100km)", "#81D4FA")
+                else:
+                    st.session_state['zona_info'] = ("ZONA 4 (>100km)", "#A5D6A7")
+            else:
+                st.session_state['target_coords'] = None # Limpiar si falla
+
+    # MOSTRAR RESULTADOS (Leyendo de la memoria)
     if st.session_state['target_coords']:
         zona, color = st.session_state['zona_info']
         km = st.session_state['km_result']
@@ -148,6 +167,7 @@ with col_der:
                 icon=folium.Icon(color="blue", icon="info-sign")
             ).add_to(m)
             
+            # Etiqueta de texto sobre el mapa
             folium.map.Marker(
                 [row['Lat'], row['Lon']],
                 icon=DivIcon(
@@ -168,5 +188,4 @@ with col_der:
         folium.PolyLine([origen_ourense, target], color="black", weight=3).add_to(m)
 
     # Renderizar mapa
-
     st_folium(m, width="100%", height=600)
