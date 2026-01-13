@@ -40,7 +40,7 @@ def obtener_datos(archivo):
             st.error(f"Error al leer el archivo: {e}")
             return None
     else:
-        # Datos por defecto
+        # Datos por defecto (CORREGIDO: 14 elementos en cada lista)
         data = {
             'City': ['Ourense', 'Barbadás', 'San Cibrao', 'Pereiro', 'O Carballiño', 'Ribadavia',
                      'Allariz', 'Maceda', 'Celanova', 'Xinzo', 'Monforte', 'Lalín', 'Santiago', 'Vigo'],
@@ -49,7 +49,7 @@ def obtener_datos(archivo):
             'Lat': [42.3358, 42.3022, 42.2965, 42.3467, 42.4300, 42.2878,
                     42.1911, 42.2706, 42.1517, 42.0634, 42.5218, 42.6617, 42.8782, 42.2406],
             'Lon': [-7.8639, -7.8967, -7.8676, -7.8000, -8.0772, -8.1430,
-                    -7.8016, -7.6517, -7.9575, -7.7735, -7.7257, -7.5144, -8.1132, -8.5448, -8.7207]
+                    -7.8016, -7.6517, -7.9575, -7.7257, -7.5144, -8.1132, -8.5448, -8.7207]
         }
         return pd.DataFrame(data)
 
@@ -67,7 +67,7 @@ with col_izq:
     # --- LÓGICA DE CÁLCULO ---
     if btn_calc and entrada:
         with st.spinner("Localizando..."):
-            # 1. Inicializamos variables (ESTO EVITA EL ERROR NAMEERROR)
+            # 1. Inicializamos variables
             target_coords = None
             target_name = ""
             
@@ -81,22 +81,18 @@ with col_izq:
                     target_coords = (busqueda.iloc[0]['Lat'], busqueda.iloc[0]['Lon'])
                     target_name = f"{busqueda.iloc[0]['City']} (Cliente Registrado)"
             
-            # 3. Búsqueda Online Inteligente (Si no estaba en Excel)
+            # 3. Búsqueda Online Inteligente
             if not target_coords:
-                geolocator = Nominatim(user_agent="app_logistica_final_v1")
+                geolocator = Nominatim(user_agent="app_logistica_final_v2")
                 try:
                     busqueda_gps = ""
-                    # Si son 5 números, busca en toda España (CP)
                     if entrada.isdigit() and len(entrada) == 5:
                         busqueda_gps = f"{entrada}, España"
-                    # Si es texto, prioriza Ourense
                     else:
                         busqueda_gps = f"{entrada}, Ourense, España"
 
-                    # Ejecutar búsqueda principal
                     loc = geolocator.geocode(busqueda_gps, timeout=10)
                     
-                    # Si falla, intentar búsqueda libre
                     if not loc and not entrada.isdigit():
                          loc = geolocator.geocode(f"{entrada}, España", timeout=10)
 
@@ -109,16 +105,14 @@ with col_izq:
                 except Exception as e:
                     st.error(f"⚠️ Error técnico: {e}")
 
-            # 4. Guardar resultados en Memoria (Session State)
+            # 4. Guardar resultados en Memoria
             if target_coords:
                 st.session_state['target_coords'] = target_coords
                 st.session_state['target_name'] = target_name
                 
-                # Calcular KM
                 km = round(geodesic(origen_ourense, target_coords).km, 2)
                 st.session_state['km_result'] = km
                 
-                # Definir Zona
                 if km <= 20:
                     st.session_state['zona_info'] = ("ZONA 1 (0-20km)", "#FFF176")
                 elif km <= 50:
@@ -128,9 +122,9 @@ with col_izq:
                 else:
                     st.session_state['zona_info'] = ("ZONA 4 (>100km)", "#A5D6A7")
             else:
-                st.session_state['target_coords'] = None # Limpiar si falla
+                st.session_state['target_coords'] = None
 
-    # MOSTRAR RESULTADOS (Leyendo de la memoria)
+    # MOSTRAR RESULTADOS
     if st.session_state['target_coords']:
         zona, color = st.session_state['zona_info']
         km = st.session_state['km_result']
@@ -153,12 +147,12 @@ with col_der:
     
     m = folium.Map(location=origen_ourense, zoom_start=9)
 
-    # 1. Zonas
+    # Zonas
     folium.Circle(origen_ourense, radius=20000, color="gold", fill=True, fill_opacity=0.1).add_to(m)
     folium.Circle(origen_ourense, radius=50000, color="red", fill=False, weight=2).add_to(m)
     folium.Circle(origen_ourense, radius=100000, color="blue", fill=False, weight=2, linestyle='--').add_to(m)
 
-    # 2. Clientes con Etiquetas
+    # Clientes
     if df_datos is not None:
         for idx, row in df_datos.iterrows():
             folium.Marker(
@@ -167,7 +161,6 @@ with col_der:
                 icon=folium.Icon(color="blue", icon="info-sign")
             ).add_to(m)
             
-            # Etiqueta de texto sobre el mapa
             folium.map.Marker(
                 [row['Lat'], row['Lon']],
                 icon=DivIcon(
@@ -177,7 +170,7 @@ with col_der:
                 )
             ).add_to(m)
 
-    # 3. Dibujar Resultado (Leyendo de memoria)
+    # Resultado búsqueda
     if st.session_state['target_coords']:
         target = st.session_state['target_coords']
         folium.Marker(
@@ -187,5 +180,4 @@ with col_der:
         ).add_to(m)
         folium.PolyLine([origen_ourense, target], color="black", weight=3).add_to(m)
 
-    # Renderizar mapa
     st_folium(m, width="100%", height=600)
