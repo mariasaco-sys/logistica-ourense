@@ -81,18 +81,29 @@ with col_izq:
                     coords_temp = (busqueda.iloc[0]['Lat'], busqueda.iloc[0]['Lon'])
                     name_temp = f"{busqueda.iloc[0]['City']} (Cliente Registrado)"
             
-            # B) Buscar Online
+            # B) Buscar Online (CÓDIGO MEJORADO)
             if not coords_temp:
-                geolocator = Nominatim(user_agent="app_logistica_pro_memory")
+                geolocator = Nominatim(user_agent="app_logistica_pro_v2")
                 try:
-                    loc = geolocator.geocode(f"{entrada}, Ourense, España", timeout=5)
-                    if not loc: loc = geolocator.geocode(f"{entrada}, España", timeout=5)
+                    # LÓGICA INTELIGENTE:
+                    # Si lo que escribes son 5 números (es un CP), busca en toda España.
+                    if entrada.isdigit() and len(entrada) == 5:
+                        busqueda_gps = f"{entrada}, España"
+                    else:
+                        # Si son letras (pueblo), intenta primero en Ourense
+                        busqueda_gps = f"{entrada}, Ourense, España"
+
+                    loc = geolocator.geocode(busqueda_gps, timeout=10)
+                    
+                    # Si falla la primera búsqueda, intentamos una búsqueda general
+                    if not loc: 
+                        loc = geolocator.geocode(f"{entrada}, España", timeout=10)
+
                     if loc:
                         coords_temp = (loc.latitude, loc.longitude)
                         name_temp = loc.address.split(",")[0]
-                except:
-                    st.warning("⚠️ Problemas de conexión GPS")
-
+                except Exception as e:
+                    st.warning(f"⚠️ Error de conexión: {e}")
             # C) Guardar resultados en Session State
             if coords_temp:
                 st.session_state['target_coords'] = coords_temp
@@ -172,4 +183,3 @@ with col_der:
 
     # Renderizar mapa
     st_folium(m, width="100%", height=600)
-
