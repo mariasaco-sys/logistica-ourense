@@ -5,13 +5,14 @@ from folium.features import DivIcon
 from streamlit_folium import st_folium
 from geopy.distance import geodesic
 from geopy.geocoders import Nominatim
+import time # Necesario para esperar entre intentos
 
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(page_title="Logística Ourense Pro", layout="wide")
 
 st.title("🚛 Calculadora Logística Interactiva")
 st.markdown("Carga tus clientes desde Excel o busca direcciones en tiempo real.")
-st.info("💡 Consejo: Para buscar pueblos pequeños, escribe 'Pueblo, Ourense'. Para CPs, escribe solo el número.")
+st.info("💡 Nota: Usamos un servidor de mapas gratuito. Si tarda un poco, es normal.")
 
 # --- 0. INICIALIZAR MEMORIA (SESSION STATE) ---
 if 'target_coords' not in st.session_state:
@@ -41,7 +42,7 @@ def obtener_datos(archivo):
             st.error(f"Error al leer el archivo: {e}")
             return None
     else:
-        # Datos por defecto (14 elementos exactos en cada lista)
+        # Datos por defecto
         data = {
             'City': ['Ourense', 'Barbadás', 'San Cibrao', 'Pereiro', 'O Carballiño', 'Ribadavia',
                      'Allariz', 'Maceda', 'Celanova', 'Xinzo', 'Monforte', 'Lalín', 'Santiago', 'Vigo'],
@@ -57,17 +58,37 @@ def obtener_datos(archivo):
 df_datos = obtener_datos(uploaded_file)
 origen_ourense = (42.3358, -7.8639)
 
+# --- FUNCIÓN DE BÚSQUEDA ROBUSTA (NUEVO) ---
+def buscar_con_reintentos(query_dict_or_str, intentos=3):
+    """Intenta buscar la dirección varias veces si el servidor falla"""
+    geolocator = Nominatim(user_agent="app_logistica_v6_retry_system")
+    
+    for i in range(intentos):
+        try:
+            # Si es la primera vez, no espera. Si ha fallado, espera un poco.
+            if i > 0: time.sleep(1.5) 
+            
+            if isinstance(query_dict_or_str, dict):
+                return geolocator.geocode(query_dict_or_str, timeout=10)
+            else:
+                return geolocator.geocode(query_dict_or_str, timeout=10)
+                
+        except Exception:
+            continue # Si falla, pasa al siguiente intento del bucle
+            
+    return None # Si falla 3 veces, se rinde
+
 # --- 2. INTERFAZ PRINCIPAL ---
 col_izq, col_der = st.columns([1, 2])
 
 with col_izq:
     st.subheader("📍 Calcular Ruta")
-    entrada = st.text_input("Escribe CP o Ciudad:", placeholder="Ej: 36004 o Pontevedra")
+    entrada = st.text_input("Escribe CP o Ciudad:", placeholder="Ej: 36004 o A Guarda")
     btn_calc = st.button("Buscar y Calcular", type="primary")
 
     # --- LÓGICA DE CÁLCULO ---
     if btn_calc and entrada:
-        with st.spinner("Buscando en GPS..."):
+        with st.spinner("Conectando con satélite..."):
             target_coords = None
             target_name = ""
             
@@ -81,36 +102,34 @@ with col_izq:
                     target_coords = (busqueda.iloc[0]['Lat'], busqueda.iloc[0]['Lon'])
                     target_name = f"{busqueda.iloc[0]['City']} (Cliente Registrado)"
             
-            # B) Búsqueda Online (LÓGICA MEJORADA)
+            # B) Búsqueda Online (USANDO LA NUEVA FUNCIÓN ROBUSTA)
             if not target_coords:
-                geolocator = Nominatim(user_agent="app_logistica_v4_final")
                 try:
                     loc = None
-                    # CASO 1: Es un Código Postal (5 números)
+                    # CASO 1: Código Postal (5 números)
                     if entrada.isdigit() and len(entrada) == 5:
-                        # Búsqueda estructurada (Más precisa para CPs)
-                        loc = geolocator.geocode({"postalcode": entrada, "country": "Spain"}, timeout=10)
+                        loc = buscar_con_reintentos({"postalcode": entrada, "country": "Spain"})
                     
-                    # CASO 2: Es texto (Ciudad o Pueblo)
+                    # CASO 2: Texto (Pueblo/Ciudad)
                     else:
-                        # Primero buscamos de forma general en España (encuentra Pontevedra ciudad)
-                        loc = geolocator.geocode(f"{entrada}, España", timeout=10)
+                        # Intento 1: Búsqueda general en España
+                        loc = buscar_con_reintentos(f"{entrada}, España")
                         
-                        # Si no encuentra nada, probamos forzando Ourense (para aldeas pequeñas)
+                        # Intento 2: Si falla, forzar Ourense (para aldeas)
                         if not loc:
-                             loc = geolocator.geocode(f"{entrada}, Ourense, España", timeout=10)
+                             loc = buscar_con_reintentos(f"{entrada}, Ourense, España")
 
                     # --- PROCESAR RESULTADO ---
                     if loc:
                         target_coords = (loc.latitude, loc.longitude)
-                        target_name = loc.address.split(",")[0]  # Coge solo la primera parte del nombre
+                        target_name = loc.address.split(",")[0]
                     else:
-                        st.warning(f"⚠️ No se encontró: {entrada}. Prueba a añadir la provincia (ej: 'San Cibrao, Ourense')")
+                        st.warning(f"⚠️ No se encontró: '{entrada}'. Puede que el servidor esté muy saturado ahora mismo.")
 
                 except Exception as e:
-                    st.error(f"⚠️ Error técnico: {e}")
+                    st.error(f"⚠️ Error desconocido: {e}")
 
-            # C) Guardar resultados y mostrar
+            # C) Guardar y mostrar
             if target_coords:
                 st.session_state['target_coords'] = target_coords
                 st.session_state['target_name'] = target_name
