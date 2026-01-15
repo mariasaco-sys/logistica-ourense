@@ -190,5 +190,280 @@ ZONA METRO,32002,BARBADAS,5,Lun y Vie
 ZONA METRO,32152,COLES,5,Lun y Vie
 ZONA METRO,32100,COLES,4,Lun y Vie
 ZONA METRO,32710,CORTIÑAS PEREIRO DE AGUIAR,4,Lun y Vie
-ZONA MET
+ZONA METRO,32890,OURENSE,4,Lun y Vie
+ZONA METRO,32920,TOEN,4,Lun y Vie
+ZONA METRO,32710,O PEREIRO DE AGUIAR,3,Lun y Vie
+ZONA METRO,32830,A MANCHICA - A MERCA,3,Lun y Vie
+ZONA METRO,32930,BARBADAS,3,Lun y Vie
+ZONA METRO,32930,OURENSE,3,Lun y Vie
+ZONA METRO,32950,COLES,3,Lun y Vie
+ZONA METRO,32950,OURENSE,3,Lun y Vie
+ZONA METRO,32981,OURENSE,3,Lun y Vie
+ZONA METRO,32001,BARBADAS,2,Lun y Vie
+ZONA METRO,32002,A VALENZA,2,Lun y Vie
+ZONA METRO,32002,CONCELLO DE OURENSE,2,Lun y Vie
+ZONA METRO,32100,OURENSE,2,Lun y Vie
+ZONA METRO,32160,NOGUEIRA DE RAMUIN,2,Lun y Vie
+ZONA METRO,32160,NOGUEIRA DE RAMUÍN,2,Lun y Vie
+ZONA METRO,32161,NOGUEIRA DE RAMUIN,2,Lun y Vie
+ZONA METRO,32667,OURENSE,2,Lun y Vie
+ZONA METRO,32701,OURENSE,2,Lun y Vie
+ZONA METRO,32792,O PEREIRO DE AGUIAR,2,Lun y Vie
+ZONA METRO,32792,OURENSE,2,Lun y Vie
+ZONA METRO,32811,OURENSE,2,Lun y Vie
+ZONA METRO,32890,OURENSE A VALENZA,2,Lun y Vie
+ZONA METRO,32901,SAN CIBRAO DAS VINAS,2,Lun y Vie
+ZONA METRO,32980,OURENSE,2,Lun y Vie
+ZONA METRO,32002,.OURENSE,1,Lun y Vie
+ZONA METRO,32002,"A VALENZA, BARBADAS, OURENSE",1,Lun y Vie
+ZONA METRO,32002,"A VALENZA,BARBADAS",1,Lun y Vie
+ZONA METRO,32005,BARBADAS,1,Lun y Vie
+ZONA METRO,32005,SAN CIBRAO DAS VIÑAS,1,Lun y Vie
+ZONA METRO,32100,CAMBEO/COLES,1,Lun y Vie
+ZONA METRO,32103,OURENSE,1,Lun y Vie
+ZONA METRO,32103,OVISO - COLES,1,Lun y Vie
+ZONA METRO,32112,OURENSE,1,Lun y Vie
+ZONA METRO,32130,OURENSE,1,Lun y Vie
+ZONA METRO,32151,OURENSE,1,Lun y Vie
+ZONA METRO,32152,MERIZ (COLES),1,Lun y Vie
+ZONA METRO,32152,OURENSE,1,Lun y Vie
+ZONA METRO,32160,NOGUEIRA DE RAMIUN,1,Lun y Vie
+ZONA METRO,32161,NOGUEIRA DE RAMUIN - LUINTRA,1,Lun y Vie
+ZONA METRO,32170,AMOEIRO- POVOANZA,1,Lun y Vie
+ZONA METRO,32170,OUTEIRO PARADA DE AMOEIRO,1,Lun y Vie
+ZONA METRO,32170,PARADA DE AMOEIRO,1,Lun y Vie
+ZONA METRO,32172,FIGUEIRAS / AMOEIRO,1,Lun y Vie
+ZONA METRO,32212,OURENSE,1,Lun y Vie
+ZONA METRO,32213,OURENSE,1,Lun y Vie
+ZONA METRO,32229,OURENSE,1,Lun y Vie
+ZONA METRO,32235,OURENSE,1,Lun y Vie
+ZONA METRO,32235,TRADO PONTE DEVA OURENSE,1,Lun y Vie
+ZONA METRO,32236,OURENSE,1,Lun y Vie
+ZONA METRO,32400,OURENSE,1,Lun y Vie
+ZONA METRO,32413,OURENSE,1,Lun y Vie
+ZONA METRO,32418,OURENSE,1,Lun y Vie
+ZONA METRO,32430,OURENSE,1,Lun y Vie
+ZONA METRO,32440,OURENSE,1,Lun y Vie
+ZONA METRO,32448,NOGUEIRA DE RAMUIN,1,Lun y Vie
+ZONA METRO,32454,CENLLE - OURENSE,1,Lun y Vie
+ZONA METRO,32456,OURENSE,1,Lun y Vie
+ZONA METRO,32520,OURENSE,1,Lun y Vie
+ZONA METRO,32539,OURENSE,1,Lun y Vie
+ZONA METRO,32573,OURENSE,1,Lun y Vie
+ZONA METRO,32613,OIMBRA - SAN CIBRAO,1,Lun y Vie
+ZONA METRO,32625,OURENSE,1,Lun y Vie
+ZONA METRO,32643,OURENSE,1,Lun y Vie
+ZONA METRO,32650,OURENSE,1,Lun y Vie
+ZONA METRO,32651,OURENSE,1,Lun y Vie
+ZONA METRO,32652,OURENSE,1,Lun y Vie
+ZONA METRO,32660,OURENSE,1,Lun y Vie
+ZONA METRO,32670,OURENSE,1,Lun y Vie
+ZONA METRO,32695,OURENSE,1,Lun y Vie
+ZONA METRO,32698,OURENSE,1,Lun y Vie
+ZONA METRO,32701,"BAÑOS DE MOLGAS, OURENSE",1,Lun y Vie
+ZONA METRO,32701,BAÑOS DE MOLGAS-OURENSE,1,Lun y Vie
+ZONA METRO,32702,OURENSE,1,Lun y Vie
+ZONA METRO,32704,OURENSE,1,Lun y Vie
+ZONA METRO,32710,CORTIÑA PEREIRO DE AGUIAR,1,Lun y Vie
+ZONA METRO,32710,OURENSE,1,Lun y Vie
+ZONA METRO,32710,PEREIRO DE AGUAR,1,Lun y Vie
+ZONA METRO,32710,PEREIRO DE AGUIAR - OURENSE,1,Lun y Vie
+ZONA METRO,32710,PEREIRO DE GUIAR1,1,Lun y Vie
+ZONA METRO,32711,CONCELLO DE PEREIRO DE AGUIAR,1,Lun y Vie
+ZONA METRO,32711,OURENSE,1,Lun y Vie
+ZONA METRO,32720,OURENSE,1,Lun y Vie
+ZONA METRO,32730,OURENSE,1,Lun y Vie
+ZONA METRO,32748,OURENSE,1,Lun y Vie
+ZONA METRO,32764,OURENSE,1,Lun y Vie
+ZONA METRO,32780,A POBRA DE TRIVES ( OURENSE),1,Lun y Vie
+ZONA METRO,32791,PEREIRO DE AGUIAR,1,Lun y Vie
+ZONA METRO,32792,PEREIRO DE AGUIAR (OS GOZOS),1,Lun y Vie
+ZONA METRO,32792,SANTA MARTA DE MOREIRAS PEREIRO DE AGUIA,1,Lun y Vie
+ZONA METRO,32793,AYUNTAMIENTO DE PEREIRO DE AGUIAR,1,Lun y Vie
+ZONA METRO,32793,O PEREIRO DE AGUIAR,1,Lun y Vie
+ZONA METRO,32793,TAPADA DE BOUZAS-PEREIRO DE AGUIAR,1,Lun y Vie
+ZONA METRO,32794,OURENSE,1,Lun y Vie
+ZONA METRO,32812,OURENSE,1,Lun y Vie
+ZONA METRO,32813,OURENSE,1,Lun y Vie
+ZONA METRO,32814,QUINTELA  DE LEIRADO - OURENSE,1,Lun y Vie
+ZONA METRO,32817,OURENSE,1,Lun y Vie
+ZONA METRO,32823,OURENSE,1,Lun y Vie
+ZONA METRO,32825,OURENSE,1,Lun y Vie
+ZONA METRO,32826,OURENSE,1,Lun y Vie
+ZONA METRO,32830,FORXAS DAS VIÑAS A MERCA,1,Lun y Vie
+ZONA METRO,32830,OURENSE,1,Lun y Vie
+ZONA METRO,32838,"SAN PEDRO DA MEZQUITA, A MERCA",1,Lun y Vie
+ZONA METRO,32839,A MERCA,1,Lun y Vie
+ZONA METRO,32839,ZARRACOS - A MERCA,1,Lun y Vie
+ZONA METRO,32840,OURENSE,1,Lun y Vie
+ZONA METRO,32890,LA VALENZANA - BARBADAS - OURENSE,1,Lun y Vie
+ZONA METRO,32900,POLÍGONO SAN CIBRAO DAS VIÑAS,1,Lun y Vie
+ZONA METRO,32900,SAN CIBRAN DAS VINHAS-OURENSE,1,Lun y Vie
+ZONA METRO,32900,SAN CIBRAO DAS VIÑAS,1,Lun y Vie
+ZONA METRO,32901,OURENSE,1,Lun y Vie
+ZONA METRO,32901,SAN CIBRAO DAS VIÑAS,1,Lun y Vie
+ZONA METRO,32910,SAN CIBRAO,1,Lun y Vie
+ZONA METRO,32911,O PICOUTO SAN CIBRAO,1,Lun y Vie
+ZONA METRO,32911,O PIÑEIRAL SAN CIBRAO,1,Lun y Vie
+ZONA METRO,32911,OURENSE,1,Lun y Vie
+ZONA METRO,32911,SAN CIBRAO,1,Lun y Vie
+ZONA METRO,32911,SAN CIBRAO DAS VINAS,1,Lun y Vie
+ZONA METRO,32915,OURENSE,1,Lun y Vie
+ZONA METRO,32915,SAN CIBRAO DAS VIÑAS,1,Lun y Vie
+ZONA METRO,32930,MUGARES TOEN,1,Lun y Vie
+ZONA METRO,32930,SANTA MARIA DE XESTOSA (TOEN),1,Lun y Vie
+ZONA METRO,32930,XESTOSA TOEN,1,Lun y Vie
+ZONA METRO,32940,CONCELLO DE TOEN,1,Lun y Vie
+ZONA METRO,32940,OURENSE,1,Lun y Vie
+ZONA METRO,32940,"PUGA,TOEN",1,Lun y Vie
+ZONA METRO,32940,TOEN,1,Lun y Vie
+ZONA METRO,32960,OURENSE,1,Lun y Vie
+ZONA METRO,32960,OURENSE A PEDRA,1,Lun y Vie
+ZONA METRO,32980,"PARROQUÍA CASTRO DE BEIRO, OURENSE",1,Lun y Vie
+ZONA METRO,32980,VENDANOVA -AMOEIRO,1,Lun y Vie
+ZONA METRO,32981,BEIRO-OURENSE,1,Lun y Vie
+ZONA METRO,32990,OURENSE,1,Lun y Vie"""
 
+# --- 1. INICIALIZAR MEMORIA ---
+if 'target_coords' not in st.session_state: st.session_state['target_coords'] = None
+if 'target_name' not in st.session_state: st.session_state['target_name'] = ""
+if 'km_result' not in st.session_state: st.session_state['km_result'] = 0
+if 'tipo_calculo' not in st.session_state: st.session_state['tipo_calculo'] = "" 
+if 'zona_info' not in st.session_state: st.session_state['zona_info'] = None
+if 'logistica_transporte' not in st.session_state: st.session_state['logistica_transporte'] = ""
+if 'logistica_frecuencia' not in st.session_state: st.session_state['logistica_frecuencia'] = ""
+if 'logistica_acarreo' not in st.session_state: st.session_state['logistica_acarreo'] = ""
+if 'historial_ruta' not in st.session_state: st.session_state['historial_ruta'] = ""
+
+# --- 2. CARGAR HISTORIAL ---
+@st.cache_data
+def cargar_historial():
+    try:
+        # Leemos el string CSV directamente
+        df = pd.read_csv(io.StringIO(CSV_DATA))
+        # Aseguramos que el CP sea string para poder comparar
+        df['Código postal envío'] = df['Código postal envío'].astype(str)
+        return df
+    except Exception as e:
+        st.error(f"Error cargando historial: {e}")
+        return None
+
+df_historial = cargar_historial()
+origen_ourense = (42.3358, -7.8639)
+
+# --- 3. FUNCIONES DE CÁLCULO ---
+def obtener_distancia_carretera(origen, destino):
+    url = f"http://router.project-osrm.org/route/v1/driving/{origen[1]},{origen[0]};{destino[1]},{destino[0]}?overview=false"
+    try:
+        r = requests.get(url, timeout=5)
+        if r.status_code == 200:
+            return round(r.json()['routes'][0]['distance'] / 1000, 2), "🚗 Por Carretera"
+    except: pass
+    return round(geodesic(origen, destino).km, 2), "✈️ Línea Recta (Servidor ocupado)"
+
+def calcular_logistica_completa(cp_detectado):
+    cp = str(cp_detectado).strip()
+    
+    # 1. BUSCAR EN HISTORIAL (Prioridad Máxima)
+    if df_historial is not None:
+        match = df_historial[df_historial['Código postal envío'] == cp]
+        if not match.empty:
+            # Si está en tu lista, es Transportes Martins
+            dia = match.iloc[0]['Dia_Asignado']
+            ruta = match.iloc[0]['Ruta_Asignada']
+            return "🚛 Transportes Martins", f"📅 {dia}", f"📍 Ruta: {ruta}"
+
+    # 2. SI NO ESTÁ EN HISTORIAL -> Lógica General
+    if not cp or not cp[0].isdigit(): return "❓ Consultar", "Depende destino", "❓"
+    
+    # Reglas generales para lo que no esté en tu lista
+    if cp.startswith("32"): return "🚛 Flota Propia / Martins", "⚡ Diaria", "❌ No"
+    elif cp.startswith("36"): return "🚚 Agencia Externa", "📅 L-X-V", "⚠️ Sí (Zona Acarreo)"
+    else: return "✈️ Red Nacional", "⏱️ 48/72h", "⚠️ Sí"
+
+def buscar_con_reintentos(query_dict_or_str, intentos=2):
+    geolocator = Nominatim(user_agent="app_logistica_v9_martins")
+    for i in range(intentos):
+        try:
+            if i > 0: time.sleep(1)
+            if isinstance(query_dict_or_str, dict):
+                return geolocator.geocode(query_dict_or_str, timeout=10, addressdetails=True)
+            else:
+                return geolocator.geocode(query_dict_or_str, timeout=10, addressdetails=True)
+        except: continue
+    return None
+
+# --- 4. INTERFAZ ---
+col_izq, col_der = st.columns([1, 2])
+
+with col_izq:
+    st.subheader("📍 Datos del Envío")
+    entrada = st.text_input("Destino (CP, Pueblo...):", placeholder="Ej: 27400 o Monforte")
+    btn_calc = st.button("🔍 Calcular Ruta", type="primary")
+
+    if btn_calc and entrada:
+        with st.spinner("Consultando historial y satélite..."):
+            target_coords, target_name, cp_final = None, "", ""
+            
+            # Buscar coordenadas
+            loc = None
+            if entrada.isdigit() and len(entrada) == 5:
+                loc = buscar_con_reintentos({"postalcode": entrada, "country": "Spain"})
+                cp_final = entrada
+            else:
+                loc = buscar_con_reintentos(f"{entrada}, España")
+                if not loc: loc = buscar_con_reintentos(f"{entrada}, Ourense, España")
+                if loc and 'address' in loc.raw and 'postcode' in loc.raw['address']:
+                    cp_final = loc.raw['address']['postcode']
+
+            if loc:
+                target_coords = (loc.latitude, loc.longitude)
+                target_name = loc.address.split(",")[0]
+                
+                # Calcular Datos
+                km, tipo_calc = obtener_distancia_carretera(origen_ourense, target_coords)
+                t, f, a = calcular_logistica_completa(cp_final)
+                
+                # Zonas
+                if km <= 20: zona_res = ("ZONA 1 (0-20km)", "#FFF9C4")
+                elif km <= 50: zona_res = ("ZONA 2 (20-50km)", "#FFCCBC")
+                elif km <= 100: zona_res = ("ZONA 3 (50-100km)", "#B3E5FC")
+                else: zona_res = ("ZONA 4 (>100km)", "#C8E6C9")
+
+                st.session_state.update({
+                    'target_coords': target_coords, 'target_name': target_name,
+                    'km_result': km, 'tipo_calculo': tipo_calc, 'zona_info': zona_res,
+                    'logistica_transporte': t, 'logistica_frecuencia': f, 'logistica_acarreo': a
+                })
+            else:
+                st.warning("⚠️ Destino no encontrado")
+
+    # RESULTADOS
+    if st.session_state['target_coords']:
+        zona_txt, bg_color = st.session_state['zona_info']
+        st.markdown(f"""
+        <div style='background-color: {bg_color}; padding: 15px; border-radius: 10px; border: 1px solid #ccc; color: black;'>
+            <h3 style='margin-top:0;'>{st.session_state['target_name']}</h3>
+            <table style='width:100%'>
+                <tr><td>🛣️ <strong>Distancia:</strong></td><td>{st.session_state['km_result']} km <small>({st.session_state['tipo_calculo']})</small></td></tr>
+                <tr><td>📍 <strong>Zona:</strong></td><td>{zona_txt}</td></tr>
+                <tr><td colspan="2"><hr></td></tr>
+                <tr><td>🚛 <strong>Agencia:</strong></td><td><strong>{st.session_state['logistica_transporte']}</strong></td></tr>
+                <tr><td>📅 <strong>Frecuencia:</strong></td><td>{st.session_state['logistica_frecuencia']}</td></tr>
+                <tr><td>ℹ️ <strong>Detalle:</strong></td><td>{st.session_state['logistica_acarreo']}</td></tr>
+            </table>
+        </div>
+        """, unsafe_allow_html=True)
+
+with col_der:
+    st.subheader("🗺️ Mapa")
+    m = folium.Map(location=origen_ourense, zoom_start=9)
+    folium.Circle(origen_ourense, radius=20000, color="gold", fill=True, fill_opacity=0.1).add_to(m)
+    folium.Circle(origen_ourense, radius=50000, color="red", fill=False, weight=2).add_to(m)
+    
+    if st.session_state['target_coords']:
+        target = st.session_state['target_coords']
+        folium.Marker(target, popup="DESTINO", icon=folium.Icon(color="green", icon="flag")).add_to(m)
+        folium.PolyLine([origen_ourense, target], color="black", weight=3).add_to(m)
+
+    st_folium(m, width="100%", height=600)
