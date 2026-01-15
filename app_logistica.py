@@ -351,4 +351,128 @@ def cargar_historial():
 df_historial = cargar_historial()
 origen_ourense = (42.3358, -7.8639)
 
-# --- 3. FUNCIONES DE CÁLCULO
+# --- 3. FUNCIONES DE CÁLCULO ---
+def obtener_distancia_carretera(origen, destino):
+    url = f"http://router.project-osrm.org/route/v1/driving/{origen[1]},{origen[0]};{destino[1]},{destino[0]}?overview=false"
+    try:
+        r = requests.get(url, timeout=5)
+        if r.status_code == 200:
+            return round(r.json()['routes'][0]['distance'] / 1000, 2), "🚗 Por Carretera"
+    except: pass
+    return round(geodesic(origen, destino).km, 2), "✈️ Línea Recta (Servidor ocupado)"
+
+def calcular_logistica_completa(cp_detectado):
+    cp = str(cp_detectado).strip()
+    
+    # 1. BUSCAR EN HISTORIAL (Prioridad Máxima)
+    if df_historial is not None:
+        match = df_historial[df_historial['Código postal envío'] == cp]
+        if not match.empty:
+            # Si está en tu lista, es Transportes Martins
+            dia = match.iloc[0]['Dia_Asignado']
+            ruta = match.iloc[0]['Ruta_Asignada']
+            return "🚛 Transportes Martins", f"📅 {dia}", f"📍 Ruta: {ruta}"
+
+    # 2. SI NO ESTÁ EN HISTORIAL -> Lógica General
+    if not cp or not cp[0].isdigit(): return "❓ Consultar", "Depende destino", "❓"
+    
+    # Reglas generales para lo que no esté en tu lista
+    if cp.startswith("32"): return "🚛 Flota Propia / Martins", "⚡ Diaria", "❌ No"
+    elif cp.startswith("36"): return "🚚 Agencia Externa", "📅 L-X-V", "⚠️ Sí (Zona Acarreo)"
+    else: return "✈️ Red Nacional", "⏱️ 48/72h", "⚠️ Sí"
+
+def buscar_con_reintentos(query_dict_or_str, intentos=2):
+    geolocator = Nominatim(user_agent="app_logistica_v9_martins")
+    for i in range(intentos):
+        try:
+            if i > 0: time.sleep(1)
+            if isinstance(query_dict_or_str, dict):
+                return geolocator.geocode(query_dict_or_str, timeout=10, addressdetails=True)
+            else:
+                return geolocator.geocode(query_dict_or_str, timeout=10, addressdetails=True)
+        except: continue
+    return None
+
+# --- 4. INTERFAZ ---
+col_izq, col_der = st.columns([1, 2])
+
+with col_izq:
+    st.subheader("📍 Datos del Envío")
+    entrada = st.text_input("Destino (CP, Pueblo...):", placeholder="Ej: 27400 o Monforte")
+    
+    # NUEVO CAMPO: SELECCIÓN DE TIPO DE TRANSPORTE
+    tipo_camion = st.selectbox("Selecciona Tipo Transporte:", ["ACARREO", "GRUA", "PEQUEÑO"])
+    
+    btn_calc = st.button("🔍 Calcular Ruta", type="primary")
+
+    if btn_calc and entrada:
+        # Guardamos la selección del usuario
+        st.session_state['tipo_transporte_seleccionado'] = tipo_camion
+        
+        with st.spinner("Consultando historial y satélite..."):
+            target_coords, target_name, cp_final = None, "", ""
+            
+            # Buscar coordenadas
+            loc = None
+            if entrada.isdigit() and len(entrada) == 5:
+                loc = buscar_con_reintentos({"postalcode": entrada, "country": "Spain"})
+                cp_final = entrada
+            else:
+                loc = buscar_con_reintentos(f"{entrada}, España")
+                if not loc: loc = buscar_con_reintentos(f"{entrada}, Ourense, España")
+                if loc and 'address' in loc.raw and 'postcode' in loc.raw['address']:
+                    cp_final = loc.raw['address']['postcode']
+
+            if loc:
+                target_coords = (loc.latitude, loc.longitude)
+                target_name = loc.address.split(",")[0]
+                
+                # Calcular Datos
+                km, tipo_calc = obtener_distancia_carretera(origen_ourense, target_coords)
+                t, f, a = calcular_logistica_completa(cp_final)
+                
+                # Zonas
+                if km <= 20: zona_res = ("ZONA 1 (0-20km)", "#FFF9C4")
+                elif km <= 50: zona_res = ("ZONA 2 (20-50km)", "#FFCCBC")
+                elif km <= 100: zona_res = ("ZONA 3 (50-100km)", "#B3E5FC")
+                else: zona_res = ("ZONA 4 (>100km)", "#C8E6C9")
+
+                st.session_state.update({
+                    'target_coords': target_coords, 'target_name': target_name,
+                    'km_result': km, 'tipo_calculo': tipo_calc, 'zona_info': zona_res,
+                    'logistica_transporte': t, 'logistica_frecuencia': f, 'logistica_acarreo': a
+                })
+            else:
+                st.warning("⚠️ Destino no encontrado")
+
+    # RESULTADOS
+    if st.session_state['target_coords']:
+        zona_txt, bg_color = st.session_state['zona_info']
+        st.markdown(f"""
+        <div style='background-color: {bg_color}; padding: 15px; border-radius: 10px; border: 1px solid #ccc; color: black;'>
+            <h3 style='margin-top:0;'>{st.session_state['target_name']}</h3>
+            <table style='width:100%'>
+                <tr><td>🛣️ <strong>Distancia:</strong></td><td>{st.session_state['km_result']} km <small>({st.session_state['tipo_calculo']})</small></td></tr>
+                <tr><td>📍 <strong>Zona:</strong></td><td>{zona_txt}</td></tr>
+                <tr><td colspan="2"><hr></td></tr>
+                <tr><td>🚛 <strong>Agencia:</strong></td><td><strong>{st.session_state['logistica_transporte']}</strong></td></tr>
+                <tr><td>📅 <strong>Frecuencia:</strong></td><td>{st.session_state['logistica_frecuencia']}</td></tr>
+                <tr><td>ℹ️ <strong>Detalle:</strong></td><td>{st.session_state['logistica_acarreo']}</td></tr>
+                <tr><td colspan="2"><hr></td></tr>
+                <tr><td>🚛 <strong>Vehículo:</strong></td><td><strong>{st.session_state['tipo_transporte_seleccionado']}</strong></td></tr>
+            </table>
+        </div>
+        """, unsafe_allow_html=True)
+
+with col_der:
+    st.subheader("🗺️ Mapa")
+    m = folium.Map(location=origen_ourense, zoom_start=9)
+    folium.Circle(origen_ourense, radius=20000, color="gold", fill=True, fill_opacity=0.1).add_to(m)
+    folium.Circle(origen_ourense, radius=50000, color="red", fill=False, weight=2).add_to(m)
+    
+    if st.session_state['target_coords']:
+        target = st.session_state['target_coords']
+        folium.Marker(target, popup="DESTINO", icon=folium.Icon(color="green", icon="flag")).add_to(m)
+        folium.PolyLine([origen_ourense, target], color="black", weight=3).add_to(m)
+
+    st_folium(m, width="100%", height=600)
