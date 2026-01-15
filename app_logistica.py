@@ -8,14 +8,15 @@ from geopy.geocoders import Nominatim
 import requests
 import time
 import io
+import branca.element as macro # Necesario para la leyenda flotante
 
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(page_title="Logística Ourense Pro", layout="wide")
 
-st.title("🚛 Calculadora Logística (Búsqueda Mejorada)")
-st.markdown("Calcula rutas, asigna transportista y detecta ciudades por nombre o CP.")
+st.title("🚛 Calculadora Logística (Visualización Ejes)")
+st.markdown("Mapa interactivo con zonas de reparto, frecuencias y leyenda integrada.")
 
-# --- 0. DATOS HISTÓRICOS (INCRUSTADOS) ---
+# --- 0. DATOS HISTÓRICOS ---
 CSV_DATA = """Ruta_Asignada,Código postal envío,Ciudad_Clean,Num_Pedidos_Historico,Dia_Asignado
 EJE ESTE (N-120),27400,MONFORTE DE LEMOS,29,Jueves
 EJE ESTE (N-120),27500,CHANTADA,15,Jueves
@@ -425,81 +426,4 @@ with col_izq:
                  historial_match = df_historial[df_historial['Ciudad_Clean'].str.contains(entrada.strip().upper(), na=False)]
             
             # Si encontramos el nombre en el Excel, usamos ese CP para guiar al GPS
-            query_gps = entrada # Por defecto buscamos lo que escribió el usuario
-            if not historial_match.empty:
-                # ¡Bingo! Encontrado en historial por nombre.
-                # Usamos el CP del historial para que el GPS no falle
-                cp_del_historial = str(historial_match.iloc[0]['Código postal envío'])
-                query_gps = {"postalcode": cp_del_historial, "country": "Spain"}
-                cp_final = cp_del_historial # Ya tenemos el CP seguro
-            
-            # --- FASE 2: GEOLOCALIZACIÓN (GPS) ---
-            loc = None
-            # Si ya definimos un query exacto (CP) lo usamos, si no, probamos lógica estándar
-            if isinstance(query_gps, dict):
-                loc = buscar_con_reintentos(query_gps)
-            elif entrada.isdigit() and len(entrada) == 5:
-                loc = buscar_con_reintentos({"postalcode": entrada, "country": "Spain"})
-                cp_final = entrada
-            else:
-                # Búsqueda libre
-                loc = buscar_con_reintentos(f"{entrada}, España")
-                if not loc: loc = buscar_con_reintentos(f"{entrada}, Ourense, España")
-                # Intentar sacar CP del GPS si no lo teníamos
-                if not cp_final and loc and 'address' in loc.raw and 'postcode' in loc.raw['address']:
-                    cp_final = loc.raw['address']['postcode']
-
-            if loc:
-                target_coords = (loc.latitude, loc.longitude)
-                target_name = loc.address.split(",")[0]
-                
-                # --- FASE 3: CÁLCULOS FINALES ---
-                km, tipo_calc = obtener_distancia_carretera(origen_ourense, target_coords)
-                
-                # Pasamos tanto el CP como el Nombre escrito para asegurar el match en la función logística
-                t, f, a = calcular_logistica_completa(cp_final, nombre_busqueda=entrada)
-                
-                if km <= 20: zona_res = ("ZONA 1 (0-20km)", "#FFF9C4")
-                elif km <= 50: zona_res = ("ZONA 2 (20-50km)", "#FFCCBC")
-                elif km <= 100: zona_res = ("ZONA 3 (50-100km)", "#B3E5FC")
-                else: zona_res = ("ZONA 4 (>100km)", "#C8E6C9")
-
-                st.session_state.update({
-                    'target_coords': target_coords, 'target_name': target_name,
-                    'km_result': km, 'tipo_calculo': tipo_calc, 'zona_info': zona_res,
-                    'logistica_transporte': t, 'logistica_frecuencia': f, 'logistica_acarreo': a
-                })
-            else:
-                st.warning("⚠️ Destino no encontrado. Prueba con el CP.")
-
-    # RESULTADOS
-    if st.session_state['target_coords']:
-        zona_txt, bg_color = st.session_state['zona_info']
-        st.markdown(f"""
-        <div style='background-color: {bg_color}; padding: 15px; border-radius: 10px; border: 1px solid #ccc; color: black;'>
-            <h3 style='margin-top:0;'>{st.session_state['target_name']}</h3>
-            <table style='width:100%'>
-                <tr><td>🛣️ <strong>Distancia:</strong></td><td>{st.session_state['km_result']} km <small>({st.session_state['tipo_calculo']})</small></td></tr>
-                <tr><td>📍 <strong>Zona:</strong></td><td>{zona_txt}</td></tr>
-                <tr><td colspan="2"><hr></td></tr>
-                <tr><td>🚛 <strong>Agencia:</strong></td><td><strong>{st.session_state['logistica_transporte']}</strong></td></tr>
-                <tr><td>📅 <strong>Frecuencia:</strong></td><td>{st.session_state['logistica_frecuencia']}</td></tr>
-                <tr><td>ℹ️ <strong>Ruta:</strong></td><td>{st.session_state['logistica_acarreo']}</td></tr>
-                <tr><td colspan="2"><hr></td></tr>
-                <tr><td>🏗️ <strong>Vehículo:</strong></td><td><strong>{st.session_state['tipo_transporte_seleccionado']}</strong></td></tr>
-            </table>
-        </div>
-        """, unsafe_allow_html=True)
-
-with col_der:
-    st.subheader("🗺️ Mapa")
-    m = folium.Map(location=origen_ourense, zoom_start=9)
-    folium.Circle(origen_ourense, radius=20000, color="gold", fill=True, fill_opacity=0.1).add_to(m)
-    folium.Circle(origen_ourense, radius=50000, color="red", fill=False, weight=2).add_to(m)
-    
-    if st.session_state['target_coords']:
-        target = st.session_state['target_coords']
-        folium.Marker(target, popup="DESTINO", icon=folium.Icon(color="green", icon="flag")).add_to(m)
-        folium.PolyLine([origen_ourense, target], color="black", weight=3).add_to(m)
-
-    st_folium(m, width="100%", height=600)
+            query_gps = entrada # Por defecto
