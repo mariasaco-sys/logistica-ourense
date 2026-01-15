@@ -426,4 +426,113 @@ with col_izq:
                  historial_match = df_historial[df_historial['Ciudad_Clean'].str.contains(entrada.strip().upper(), na=False)]
             
             # Si encontramos el nombre en el Excel, usamos ese CP para guiar al GPS
-            query_gps = entrada # Por defecto
+            query_gps = entrada # Por defecto buscamos lo que escribió el usuario
+            if not historial_match.empty:
+                # ¡Bingo! Encontrado en historial por nombre.
+                # Usamos el CP del historial para que el GPS no falle
+                cp_del_historial = str(historial_match.iloc[0]['Código postal envío'])
+                query_gps = {"postalcode": cp_del_historial, "country": "Spain"}
+                cp_final = cp_del_historial # Ya tenemos el CP seguro
+            
+            # --- FASE 2: GEOLOCALIZACIÓN (GPS) ---
+            loc = None
+            # Si ya definimos un query exacto (CP) lo usamos, si no, probamos lógica estándar
+            if isinstance(query_gps, dict):
+                loc = buscar_con_reintentos(query_gps)
+            elif entrada.isdigit() and len(entrada) == 5:
+                loc = buscar_con_reintentos({"postalcode": entrada, "country": "Spain"})
+                cp_final = entrada
+            else:
+                # Búsqueda libre
+                loc = buscar_con_reintentos(f"{entrada}, España")
+                if not loc: loc = buscar_con_reintentos(f"{entrada}, Ourense, España")
+                # Intentar sacar CP del GPS si no lo teníamos
+                if not cp_final and loc and 'address' in loc.raw and 'postcode' in loc.raw['address']:
+                    cp_final = loc.raw['address']['postcode']
+
+            if loc:
+                target_coords = (loc.latitude, loc.longitude)
+                target_name = loc.address.split(",")[0]
+                
+                # --- FASE 3: CÁLCULOS FINALES ---
+                km, tipo_calc = obtener_distancia_carretera(origen_ourense, target_coords)
+                
+                # Pasamos tanto el CP como el Nombre escrito para asegurar el match en la función logística
+                t, f, a = calcular_logistica_completa(cp_final, nombre_busqueda=entrada)
+                
+                if km <= 20: zona_res = ("ZONA 1 (0-20km)", "#FFF9C4")
+                elif km <= 50: zona_res = ("ZONA 2 (20-50km)", "#FFCCBC")
+                elif km <= 100: zona_res = ("ZONA 3 (50-100km)", "#B3E5FC")
+                else: zona_res = ("ZONA 4 (>100km)", "#C8E6C9")
+
+                st.session_state.update({
+                    'target_coords': target_coords, 'target_name': target_name,
+                    'km_result': km, 'tipo_calculo': tipo_calc, 'zona_info': zona_res,
+                    'logistica_transporte': t, 'logistica_frecuencia': f, 'logistica_acarreo': a
+                })
+            else:
+                st.warning("⚠️ Destino no encontrado. Prueba con el CP.")
+
+    # RESULTADOS
+    if st.session_state['target_coords']:
+        zona_txt, bg_color = st.session_state['zona_info']
+        st.markdown(f"""
+        <div style='background-color: {bg_color}; padding: 15px; border-radius: 10px; border: 1px solid #ccc; color: black;'>
+            <h3 style='margin-top:0;'>{st.session_state['target_name']}</h3>
+            <table style='width:100%'>
+                <tr><td>🛣️ <strong>Distancia:</strong></td><td>{st.session_state['km_result']} km <small>({st.session_state['tipo_calculo']})</small></td></tr>
+                <tr><td>📍 <strong>Zona:</strong></td><td>{zona_txt}</td></tr>
+                <tr><td colspan="2"><hr></td></tr>
+                <tr><td>🚛 <strong>Agencia:</strong></td><td><strong>{st.session_state['logistica_transporte']}</strong></td></tr>
+                <tr><td>📅 <strong>Frecuencia:</strong></td><td>{st.session_state['logistica_frecuencia']}</td></tr>
+                <tr><td>ℹ️ <strong>Ruta:</strong></td><td>{st.session_state['logistica_acarreo']}</td></tr>
+                <tr><td colspan="2"><hr></td></tr>
+                <tr><td>🏗️ <strong>Vehículo:</strong></td><td><strong>{st.session_state['tipo_transporte_seleccionado']}</strong></td></tr>
+            </table>
+        </div>
+        """, unsafe_allow_html=True)
+
+with col_der:
+    st.subheader("🗺️ Mapa")
+    m = folium.Map(location=origen_ourense, zoom_start=9)
+    # ---------------- DIBUJAR EJES (NUEVO VISUAL) ----------------
+    # Definimos las zonas visuales aproximadas
+    EJES_CONFIG = {
+        "EJE NORTE": {"coords": [42.4300, -8.0700], "color": "blue", "freq": "Martes"},
+        "EJE SUR": {"coords": [42.0600, -7.7700], "color": "red", "freq": "Miércoles"},
+        "EJE ESTE": {"coords": [42.5000, -7.5000], "color": "green", "freq": "Jueves"},
+        "ZONA METRO": {"coords": [42.3358, -7.8639], "color": "purple", "freq": "Lun/Vie"}
+    }
+    
+    # Dibujamos círculos representativos en el mapa
+    for eje, config in EJES_CONFIG.items():
+        folium.Circle(
+            location=config["coords"],
+            radius=15000 if eje != "ZONA METRO" else 8000, # Radio en metros
+            color=config["color"],
+            fill=True,
+            fill_opacity=0.2,
+            popup=f"<b>{eje}</b><br>Frecuencia: {config['freq']}"
+        ).add_to(m)
+        
+    # Leyenda Flotante HTML
+    legend_html = '''
+     <div style="position: fixed; 
+     top: 10px; right: 10px; width: 170px; height: 140px; 
+     border:2px solid grey; z-index:9999; font-size:14px;
+     background-color:white; opacity: 0.85; padding: 10px; border-radius: 5px;">
+     <b>Leyenda de Rutas</b><br>
+     <i style="background:purple; width:10px; height:10px; display:inline-block; border-radius:50%;"></i> Metro (Lun/Vie)<br>
+     <i style="background:blue; width:10px; height:10px; display:inline-block; border-radius:50%;"></i> Norte (Martes)<br>
+     <i style="background:red; width:10px; height:10px; display:inline-block; border-radius:50%;"></i> Sur (Miérc)<br>
+     <i style="background:green; width:10px; height:10px; display:inline-block; border-radius:50%;"></i> Este (Jueves)<br>
+     </div>
+     '''
+    m.get_root().html.add_child(folium.Element(legend_html))
+
+    if st.session_state['target_coords']:
+        target = st.session_state['target_coords']
+        folium.Marker(target, popup="DESTINO", icon=folium.Icon(color="green", icon="flag")).add_to(m)
+        folium.PolyLine([origen_ourense, target], color="black", weight=3).add_to(m)
+
+    st_folium(m, width="100%", height=600)
