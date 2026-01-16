@@ -369,9 +369,13 @@ def cargar_historial():
         # Importante: Cierre de comillas arriba verificado
         df = pd.read_csv(io.StringIO(CSV_DATA), dtype={'Código postal envío': str})
         df['Ciudad_Clean'] = df['Ciudad_Clean'].astype(str).str.strip().str.upper()
-        # ORDENAR POR FRECUENCIA: Así los destinos con más pedidos salen primero
+        
+        # --- CORRECCIÓN DE ORDENAMIENTO (OURENSE CAPITAL vs PUEBLO) ---
+        # Convertimos la columna de pedidos a numérico para que "162" sea mayor que "9"
         if 'Num_Pedidos_Historico' in df.columns:
+            df['Num_Pedidos_Historico'] = pd.to_numeric(df['Num_Pedidos_Historico'], errors='coerce').fillna(0)
             df = df.sort_values(by='Num_Pedidos_Historico', ascending=False)
+            
         return df
     except Exception as e:
         st.error(f"Error cargando historial: {e}")
@@ -388,7 +392,7 @@ def obtener_distancia_carretera(origen, destino):
     # 2. Intentamos la de carretera
     url = f"http://router.project-osrm.org/route/v1/driving/{origen[1]},{origen[0]};{destino[1]},{destino[0]}?overview=false"
     try:
-        r = requests.get(url, timeout=3)
+        r = requests.get(url, timeout=2) # Timeout corto para no bloquear
         if r.status_code == 200:
             data = r.json()
             if 'routes' in data and len(data['routes']) > 0:
@@ -405,7 +409,12 @@ def calcular_logistica_completa(cp_detectado, nombre_busqueda=""):
     
     # 1. BUSCAR EN HISTORIAL
     if df_historial is not None:
-        match = df_historial[df_historial['Código postal envío'] == cp]
+        match = pd.DataFrame()
+        # Prioridad 1: CP Exacto
+        if cp and cp.isdigit():
+             match = df_historial[df_historial['Código postal envío'] == cp]
+        
+        # Prioridad 2: Nombre (si no hubo match por CP)
         if match.empty and nombre_busqueda:
              match = df_historial[df_historial['Ciudad_Clean'].str.contains(nombre_busqueda, na=False)]
 
