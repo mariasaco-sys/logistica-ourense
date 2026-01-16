@@ -13,9 +13,9 @@ import io
 st.set_page_config(page_title="Logística Ourense Pro", layout="wide")
 
 st.title("🚛 Calculadora Logística (Modo Seguro)")
-st.markdown("Prioriza tus datos históricos. Si el GPS falla, te muestra la info de reparto igual.")
+st.markdown("Busca por CP o Nombre. Si el mapa falla, te muestra los datos de reparto igual.")
 
-# --- 0. DATOS HISTÓRICOS ---
+# --- 0. DATOS HISTÓRICOS (Asegúrate de copiar hasta las comillas del final) ---
 CSV_DATA = """Ruta_Asignada,Código postal envío,Ciudad_Clean,Num_Pedidos_Historico,Dia_Asignado
 EJE ESTE (N-120),27400,MONFORTE DE LEMOS,29,Jueves
 EJE ESTE (N-120),27500,CHANTADA,15,Jueves
@@ -230,5 +230,292 @@ ZONA METRO,32160,NOGUEIRA DE RAMIUN,1,Lun y Vie
 ZONA METRO,32161,NOGUEIRA DE RAMUIN - LUINTRA,1,Lun y Vie
 ZONA METRO,32170,AMOEIRO- POVOANZA,1,Lun y Vie
 ZONA METRO,32170,OUTEIRO PARADA DE AMOEIRO,1,Lun y Vie
-ZONA METRO,32170,PARADA DE AMO
+ZONA METRO,32170,PARADA DE AMOEIRO,1,Lun y Vie
+ZONA METRO,32172,FIGUEIRAS / AMOEIRO,1,Lun y Vie
+ZONA METRO,32212,OURENSE,1,Lun y Vie
+ZONA METRO,32213,OURENSE,1,Lun y Vie
+ZONA METRO,32229,OURENSE,1,Lun y Vie
+ZONA METRO,32235,OURENSE,1,Lun y Vie
+ZONA METRO,32235,TRADO PONTE DEVA OURENSE,1,Lun y Vie
+ZONA METRO,32236,OURENSE,1,Lun y Vie
+ZONA METRO,32400,OURENSE,1,Lun y Vie
+ZONA METRO,32413,OURENSE,1,Lun y Vie
+ZONA METRO,32418,OURENSE,1,Lun y Vie
+ZONA METRO,32430,OURENSE,1,Lun y Vie
+ZONA METRO,32440,OURENSE,1,Lun y Vie
+ZONA METRO,32448,NOGUEIRA DE RAMUIN,1,Lun y Vie
+ZONA METRO,32454,CENLLE - OURENSE,1,Lun y Vie
+ZONA METRO,32456,OURENSE,1,Lun y Vie
+ZONA METRO,32520,OURENSE,1,Lun y Vie
+ZONA METRO,32539,OURENSE,1,Lun y Vie
+ZONA METRO,32573,OURENSE,1,Lun y Vie
+ZONA METRO,32613,OIMBRA - SAN CIBRAO,1,Lun y Vie
+ZONA METRO,32625,OURENSE,1,Lun y Vie
+ZONA METRO,32643,OURENSE,1,Lun y Vie
+ZONA METRO,32650,OURENSE,1,Lun y Vie
+ZONA METRO,32651,OURENSE,1,Lun y Vie
+ZONA METRO,32652,OURENSE,1,Lun y Vie
+ZONA METRO,32660,OURENSE,1,Lun y Vie
+ZONA METRO,32670,OURENSE,1,Lun y Vie
+ZONA METRO,32695,OURENSE,1,Lun y Vie
+ZONA METRO,32698,OURENSE,1,Lun y Vie
+ZONA METRO,32701,"BAÑOS DE MOLGAS, OURENSE",1,Lun y Vie
+ZONA METRO,32701,BAÑOS DE MOLGAS-OURENSE,1,Lun y Vie
+ZONA METRO,32702,OURENSE,1,Lun y Vie
+ZONA METRO,32704,OURENSE,1,Lun y Vie
+ZONA METRO,32710,CORTIÑA PEREIRO DE AGUIAR,1,Lun y Vie
+ZONA METRO,32710,OURENSE,1,Lun y Vie
+ZONA METRO,32710,PEREIRO DE AGUAR,1,Lun y Vie
+ZONA METRO,32710,PEREIRO DE AGUIAR - OURENSE,1,Lun y Vie
+ZONA METRO,32710,PEREIRO DE GUIAR1,1,Lun y Vie
+ZONA METRO,32711,CONCELLO DE PEREIRO DE AGUIAR,1,Lun y Vie
+ZONA METRO,32711,OURENSE,1,Lun y Vie
+ZONA METRO,32720,OURENSE,1,Lun y Vie
+ZONA METRO,32730,OURENSE,1,Lun y Vie
+ZONA METRO,32748,OURENSE,1,Lun y Vie
+ZONA METRO,32764,OURENSE,1,Lun y Vie
+ZONA METRO,32780,A POBRA DE TRIVES ( OURENSE),1,Lun y Vie
+ZONA METRO,32791,PEREIRO DE AGUIAR,1,Lun y Vie
+ZONA METRO,32792,PEREIRO DE AGUIAR (OS GOZOS),1,Lun y Vie
+ZONA METRO,32792,SANTA MARTA DE MOREIRAS PEREIRO DE AGUIA,1,Lun y Vie
+ZONA METRO,32793,AYUNTAMIENTO DE PEREIRO DE AGUIAR,1,Lun y Vie
+ZONA METRO,32793,O PEREIRO DE AGUIAR,1,Lun y Vie
+ZONA METRO,32793,TAPADA DE BOUZAS-PEREIRO DE AGUIAR,1,Lun y Vie
+ZONA METRO,32794,OURENSE,1,Lun y Vie
+ZONA METRO,32812,OURENSE,1,Lun y Vie
+ZONA METRO,32813,OURENSE,1,Lun y Vie
+ZONA METRO,32814,QUINTELA  DE LEIRADO - OURENSE,1,Lun y Vie
+ZONA METRO,32817,OURENSE,1,Lun y Vie
+ZONA METRO,32823,OURENSE,1,Lun y Vie
+ZONA METRO,32825,OURENSE,1,Lun y Vie
+ZONA METRO,32826,OURENSE,1,Lun y Vie
+ZONA METRO,32830,FORXAS DAS VIÑAS A MERCA,1,Lun y Vie
+ZONA METRO,32830,OURENSE,1,Lun y Vie
+ZONA METRO,32838,"SAN PEDRO DA MEZQUITA, A MERCA",1,Lun y Vie
+ZONA METRO,32839,A MERCA,1,Lun y Vie
+ZONA METRO,32839,ZARRACOS - A MERCA,1,Lun y Vie
+ZONA METRO,32840,OURENSE,1,Lun y Vie
+ZONA METRO,32890,LA VALENZANA - BARBADAS - OURENSE,1,Lun y Vie
+ZONA METRO,32900,POLÍGONO SAN CIBRAO DAS VIÑAS,1,Lun y Vie
+ZONA METRO,32900,SAN CIBRAN DAS VINHAS-OURENSE,1,Lun y Vie
+ZONA METRO,32900,SAN CIBRAO DAS VIÑAS,1,Lun y Vie
+ZONA METRO,32901,OURENSE,1,Lun y Vie
+ZONA METRO,32901,SAN CIBRAO DAS VIÑAS,1,Lun y Vie
+ZONA METRO,32910,SAN CIBRAO,1,Lun y Vie
+ZONA METRO,32911,O PICOUTO SAN CIBRAO,1,Lun y Vie
+ZONA METRO,32911,O PIÑEIRAL SAN CIBRAO,1,Lun y Vie
+ZONA METRO,32911,OURENSE,1,Lun y Vie
+ZONA METRO,32911,SAN CIBRAO,1,Lun y Vie
+ZONA METRO,32911,SAN CIBRAO DAS VINAS,1,Lun y Vie
+ZONA METRO,32915,OURENSE,1,Lun y Vie
+ZONA METRO,32915,SAN CIBRAO DAS VIÑAS,1,Lun y Vie
+ZONA METRO,32930,MUGARES TOEN,1,Lun y Vie
+ZONA METRO,32930,SANTA MARIA DE XESTOSA (TOEN),1,Lun y Vie
+ZONA METRO,32930,XESTOSA TOEN,1,Lun y Vie
+ZONA METRO,32940,CONCELLO DE TOEN,1,Lun y Vie
+ZONA METRO,32940,OURENSE,1,Lun y Vie
+ZONA METRO,32940,"PUGA,TOEN",1,Lun y Vie
+ZONA METRO,32940,TOEN,1,Lun y Vie
+ZONA METRO,32960,OURENSE,1,Lun y Vie
+ZONA METRO,32960,OURENSE A PEDRA,1,Lun y Vie
+ZONA METRO,32980,"PARROQUÍA CASTRO DE BEIRO, OURENSE",1,Lun y Vie
+ZONA METRO,32980,VENDANOVA -AMOEIRO,1,Lun y Vie
+ZONA METRO,32981,BEIRO-OURENSE,1,Lun y Vie
+ZONA METRO,32990,OURENSE,1,Lun y Vie"""
 
+# --- 1. INICIALIZAR MEMORIA ---
+if 'target_coords' not in st.session_state: st.session_state['target_coords'] = None
+if 'target_name' not in st.session_state: st.session_state['target_name'] = ""
+if 'km_result' not in st.session_state: st.session_state['km_result'] = 0
+if 'tipo_calculo' not in st.session_state: st.session_state['tipo_calculo'] = "" 
+if 'zona_info' not in st.session_state: st.session_state['zona_info'] = None
+if 'logistica_transporte' not in st.session_state: st.session_state['logistica_transporte'] = ""
+if 'logistica_frecuencia' not in st.session_state: st.session_state['logistica_frecuencia'] = ""
+if 'logistica_acarreo' not in st.session_state: st.session_state['logistica_acarreo'] = ""
+if 'historial_ruta' not in st.session_state: st.session_state['historial_ruta'] = ""
+if 'tipo_transporte_seleccionado' not in st.session_state: st.session_state['tipo_transporte_seleccionado'] = ""
+if 'encontrado_en_historial' not in st.session_state: st.session_state['encontrado_en_historial'] = False
+
+# --- 2. CARGAR HISTORIAL ---
+@st.cache_data
+def cargar_historial():
+    try:
+        # Importante: Cierre de comillas arriba verificado
+        df = pd.read_csv(io.StringIO(CSV_DATA), dtype={'Código postal envío': str})
+        df['Ciudad_Clean'] = df['Ciudad_Clean'].astype(str).str.strip().str.upper()
+        return df
+    except Exception as e:
+        st.error(f"Error cargando historial: {e}")
+        return None
+
+df_historial = cargar_historial()
+origen_ourense = (42.3358, -7.8639)
+
+# --- 3. FUNCIONES DE CÁLCULO ---
+def obtener_distancia_carretera(origen, destino):
+    url = f"http://router.project-osrm.org/route/v1/driving/{origen[1]},{origen[0]};{destino[1]},{destino[0]}?overview=false"
+    try:
+        r = requests.get(url, timeout=5)
+        if r.status_code == 200:
+            return round(r.json()['routes'][0]['distance'] / 1000, 2), "🚗 Por Carretera"
+    except: pass
+    return round(geodesic(origen, destino).km, 2), "✈️ Línea Recta (Servidor ocupado)"
+
+def calcular_logistica_completa(cp_detectado, nombre_busqueda=""):
+    cp = str(cp_detectado).strip()
+    nombre_busqueda = nombre_busqueda.strip().upper()
+    
+    # 1. BUSCAR EN HISTORIAL
+    if df_historial is not None:
+        match = df_historial[df_historial['Código postal envío'] == cp]
+        if match.empty and nombre_busqueda:
+             match = df_historial[df_historial['Ciudad_Clean'].str.contains(nombre_busqueda, na=False)]
+
+        if not match.empty:
+            dia = match.iloc[0]['Dia_Asignado']
+            ruta = match.iloc[0]['Ruta_Asignada']
+            st.session_state['encontrado_en_historial'] = True
+            return "🚛 Transportes Martins", f"📅 {dia}", f"📍 Ruta: {ruta}"
+
+    # 2. LOGICA GENERAL
+    st.session_state['encontrado_en_historial'] = False
+    if not cp or not cp[0].isdigit(): return "❓ Consultar", "Depende destino", "❓"
+    
+    if cp.startswith("32"): return "🚛 Flota Propia / Martins", "⚡ Diaria", "❌ No"
+    elif cp.startswith("36"): return "🚚 Agencia Externa", "📅 L-X-V", "⚠️ Sí (Zona Acarreo)"
+    else: return "✈️ Red Nacional", "⏱️ 48/72h", "⚠️ Sí"
+
+def buscar_con_reintentos(query_dict_or_str, intentos=2):
+    geolocator = Nominatim(user_agent="app_logistica_v16_fix")
+    for i in range(intentos):
+        try:
+            if i > 0: time.sleep(1)
+            if isinstance(query_dict_or_str, dict):
+                return geolocator.geocode(query_dict_or_str, timeout=10)
+            else:
+                return geolocator.geocode(query_dict_or_str, timeout=10)
+        except: continue
+    return None
+
+# --- 4. INTERFAZ ---
+col_izq, col_der = st.columns([1, 2])
+
+with col_izq:
+    st.subheader("📍 Datos del Envío")
+    entrada = st.text_input("Destino (CP, Pueblo...):", placeholder="Ej: 27400 o Monforte")
+    tipo_camion = st.selectbox("Selecciona Tipo Transporte:", ["ACARREO", "GRUA", "PEQUEÑO"])
+    btn_calc = st.button("🔍 Calcular Ruta", type="primary")
+
+    if btn_calc and entrada:
+        st.session_state['tipo_transporte_seleccionado'] = tipo_camion
+        
+        with st.spinner("Analizando datos..."):
+            target_coords, target_name, cp_final = None, "", ""
+            
+            # 1. BUSCAR EN HISTORIAL
+            historial_match = pd.DataFrame()
+            if df_historial is not None:
+                if entrada.isdigit():
+                    historial_match = df_historial[df_historial['Código postal envío'] == entrada]
+                else:
+                    historial_match = df_historial[df_historial['Ciudad_Clean'].str.contains(entrada.strip().upper(), na=False)]
+            
+            if not historial_match.empty:
+                cp_final = str(historial_match.iloc[0]['Código postal envío'])
+                target_name = str(historial_match.iloc[0]['Ciudad_Clean'])
+            else:
+                if entrada.isdigit() and len(entrada) == 5: cp_final = entrada
+            
+            t, f, a = calcular_logistica_completa(cp_final, nombre_busqueda=entrada)
+            
+            # 2. MAPA
+            loc = None
+            if cp_final:
+                loc = buscar_con_reintentos({"postalcode": cp_final, "country": "Spain"})
+            
+            if not loc:
+                loc = buscar_con_reintentos(f"{entrada}, España")
+                if not loc: loc = buscar_con_reintentos(f"{entrada}, Ourense, España")
+
+            if loc:
+                target_coords = (loc.latitude, loc.longitude)
+                if not target_name: target_name = loc.address.split(",")[0]
+                km, tipo_calc = obtener_distancia_carretera(origen_ourense, target_coords)
+                
+                if km <= 20: zona_res = ("ZONA 1 (0-20km)", "#FFF9C4")
+                elif km <= 50: zona_res = ("ZONA 2 (20-50km)", "#FFCCBC")
+                elif km <= 100: zona_res = ("ZONA 3 (50-100km)", "#B3E5FC")
+                else: zona_res = ("ZONA 4 (>100km)", "#C8E6C9")
+            else:
+                km, tipo_calc = 0, "⚠️ Mapa no disponible"
+                zona_res = ("Ubicación desconocida", "#E0E0E0")
+                if not target_name: target_name = entrada
+
+            st.session_state.update({
+                'target_coords': target_coords, 'target_name': target_name,
+                'km_result': km, 'tipo_calculo': tipo_calc, 'zona_info': zona_res,
+                'logistica_transporte': t, 'logistica_frecuencia': f, 'logistica_acarreo': a
+            })
+
+    if st.session_state['logistica_transporte']:
+        zona_txt, bg_color = st.session_state['zona_info'] if st.session_state['zona_info'] else ("-", "#fff")
+        
+        st.markdown(f"""
+        <div style='background-color: {bg_color}; padding: 15px; border-radius: 10px; border: 1px solid #ccc; color: black;'>
+            <h3 style='margin-top:0;'>{st.session_state['target_name']}</h3>
+            <table style='width:100%'>
+                <tr><td>🛣️ <strong>Distancia:</strong></td><td>{st.session_state['km_result']} km <small>({st.session_state['tipo_calculo']})</small></td></tr>
+                <tr><td>📍 <strong>Zona:</strong></td><td>{zona_txt}</td></tr>
+                <tr><td colspan="2"><hr></td></tr>
+                <tr><td>🚛 <strong>Agencia:</strong></td><td><strong>{st.session_state['logistica_transporte']}</strong></td></tr>
+                <tr><td>📅 <strong>Frecuencia:</strong></td><td>{st.session_state['logistica_frecuencia']}</td></tr>
+                <tr><td>ℹ️ <strong>Ruta:</strong></td><td>{st.session_state['logistica_acarreo']}</td></tr>
+                <tr><td colspan="2"><hr></td></tr>
+                <tr><td>🏗️ <strong>Vehículo:</strong></td><td><strong>{st.session_state['tipo_transporte_seleccionado']}</strong></td></tr>
+            </table>
+        </div>
+        """, unsafe_allow_html=True)
+
+with col_der:
+    st.subheader("🗺️ Zonas de Reparto")
+    m = folium.Map(location=origen_ourense, zoom_start=9)
+    
+    EJES_CONFIG = {
+        "EJE NORTE": {"coords": [42.4300, -8.0700], "color": "blue", "freq": "Martes", "radius": 15000},
+        "EJE NORTE (Lalín)": {"coords": [42.6617, -8.1132], "color": "blue", "freq": "Martes", "radius": 12000},
+        "EJE SUR (Xinzo)": {"coords": [42.0634, -7.7257], "color": "red", "freq": "Miércoles", "radius": 15000},
+        "EJE SUR (Verín)": {"coords": [41.9366, -7.4393], "color": "red", "freq": "Miércoles", "radius": 12000},
+        "EJE ESTE (Monforte)": {"coords": [42.5218, -7.5144], "color": "green", "freq": "Jueves", "radius": 15000},
+        "EJE ESTE (Barco)": {"coords": [42.4168, -6.9839], "color": "green", "freq": "Jueves", "radius": 15000},
+        "ZONA METRO": {"coords": [42.3358, -7.8639], "color": "purple", "freq": "Lun/Vie", "radius": 9000}
+    }
+    
+    for nombre, config in EJES_CONFIG.items():
+        folium.Circle(
+            location=config["coords"],
+            radius=config["radius"],
+            color=config["color"],
+            fill=True,
+            fill_opacity=0.15,
+            popup=f"<b>{nombre}</b><br>{config['freq']}"
+        ).add_to(m)
+
+    legend_html = '''
+     <div style="position: fixed; top: 10px; right: 10px; width: 160px; height: 130px; 
+     border:2px solid grey; z-index:9999; font-size:14px;
+     background-color:white; opacity: 0.9; padding: 10px; border-radius: 5px;">
+     <b>Leyenda Rutas</b><br>
+     <span style="color:purple;">●</span> Metro (Lun/Vie)<br>
+     <span style="color:blue;">●</span> Norte (Martes)<br>
+     <span style="color:red;">●</span> Sur (Miérc)<br>
+     <span style="color:green;">●</span> Este (Jueves)<br>
+     </div>
+     '''
+    m.get_root().html.add_child(folium.Element(legend_html))
+
+    if st.session_state['target_coords']:
+        target = st.session_state['target_coords']
+        folium.Marker(target, popup="DESTINO", icon=folium.Icon(color="green", icon="flag")).add_to(m)
+        folium.PolyLine([origen_ourense, target], color="black", weight=3).add_to(m)
+
+    st_folium(m, width="100%", height=600)
