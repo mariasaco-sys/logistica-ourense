@@ -13,9 +13,8 @@ import random
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(page_title="Logística Ourense Pro", layout="wide")
 
-# --- CAMBIO DE TÍTULO AQUÍ ---
 st.title("🚛 Calculadora Logística Ourense")
-st.markdown("Sistema de gestión de rutas, asignación de agencias y cálculo de costes.")
+st.markdown("Sistema de gestión de rutas, asignación de agencias y alertas operativas.")
 
 # --- 1. BASE DE DATOS DE COORDENADAS (RESPALDO DE SEGURIDAD) ---
 COORDENADAS_FIJAS = {
@@ -542,6 +541,10 @@ with col_izq:
         # Alerta específica para TRAILER
         if st.session_state['tipo_transporte_seleccionado'] == "TRAILER":
             st.error("🚨 ATENCIÓN: Poner mensaje interno en PYXIS: Llamar a Ciquillo 48 horas antes")
+        
+        # NUEVA ALERTA PARA ACARREO
+        if st.session_state['tipo_transporte_seleccionado'] == "ACARREO":
+            st.warning("⚠️ ALERTA ACARREO: Preguntar al cliente qué tipo de acarreo quiere para ver si es viable o no.")
 
 with col_der:
     st.subheader("🗺️ Zonas de Reparto")
