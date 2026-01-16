@@ -8,13 +8,13 @@ from geopy.geocoders import Nominatim
 import requests
 import time
 import io
-import random # Necesario para el truco anti-bloqueo
+import random
 
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(page_title="Logística Ourense Pro", layout="wide")
 
-st.title("🚛 Calculadora Logística (GPS Reforzado)")
-st.markdown("Calcula rutas reales y evita bloqueos del servidor de mapas.")
+st.title("🚛 Calculadora Logística (Ordenación Inteligente)")
+st.markdown("Prioriza destinos frecuentes para evitar errores de datos sucios.")
 
 # --- 0. DATOS HISTÓRICOS ---
 CSV_DATA = """Ruta_Asignada,Código postal envío,Ciudad_Clean,Num_Pedidos_Historico,Dia_Asignado
@@ -344,6 +344,9 @@ def cargar_historial():
         # Importante: Cierre de comillas arriba verificado
         df = pd.read_csv(io.StringIO(CSV_DATA), dtype={'Código postal envío': str})
         df['Ciudad_Clean'] = df['Ciudad_Clean'].astype(str).str.strip().str.upper()
+        # ORDENAR POR FRECUENCIA: Así los destinos con más pedidos salen primero
+        if 'Num_Pedidos_Historico' in df.columns:
+            df = df.sort_values(by='Num_Pedidos_Historico', ascending=False)
         return df
     except Exception as e:
         st.error(f"Error cargando historial: {e}")
@@ -373,6 +376,8 @@ def calcular_logistica_completa(cp_detectado, nombre_busqueda=""):
              match = df_historial[df_historial['Ciudad_Clean'].str.contains(nombre_busqueda, na=False)]
 
         if not match.empty:
+            # Como ya ordenamos el DataFrame al cargarlo, el primer resultado (iloc[0])
+            # será siempre el destino más frecuente (el "bueno").
             dia = match.iloc[0]['Dia_Asignado']
             ruta = match.iloc[0]['Ruta_Asignada']
             st.session_state['encontrado_en_historial'] = True
@@ -425,6 +430,7 @@ with col_izq:
                     historial_match = df_historial[df_historial['Ciudad_Clean'].str.contains(entrada.strip().upper(), na=False)]
             
             if not historial_match.empty:
+                # Cogemos el primer resultado (que ahora será el más frecuente gracias a la ordenación)
                 cp_final = str(historial_match.iloc[0]['Código postal envío'])
                 target_name = str(historial_match.iloc[0]['Ciudad_Clean'])
             else:
