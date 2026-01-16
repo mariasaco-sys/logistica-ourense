@@ -14,7 +14,7 @@ import random
 st.set_page_config(page_title="Logística Ourense Pro", layout="wide")
 
 st.title("🚛 Calculadora Logística Ourense")
-st.markdown("Sistema de gestión de rutas con cálculo de distancia garantizado.")
+st.markdown("Sistema de gestión de rutas con control de acceso para Trailers.")
 
 # --- 1. BASE DE DATOS DE COORDENADAS (RESPALDO DE SEGURIDAD) ---
 COORDENADAS_FIJAS = {
@@ -360,6 +360,7 @@ if 'logistica_acarreo' not in st.session_state: st.session_state['logistica_acar
 if 'historial_ruta' not in st.session_state: st.session_state['historial_ruta'] = ""
 if 'tipo_transporte_seleccionado' not in st.session_state: st.session_state['tipo_transporte_seleccionado'] = ""
 if 'encontrado_en_historial' not in st.session_state: st.session_state['encontrado_en_historial'] = False
+if 'confirmacion_acceso' not in st.session_state: st.session_state['confirmacion_acceso'] = "N/A"
 
 # --- 2. CARGAR HISTORIAL ---
 @st.cache_data
@@ -381,22 +382,13 @@ origen_ourense = (42.3358, -7.8639)
 
 # --- 3. FUNCIONES DE CÁLCULO ---
 def obtener_distancia_carretera(origen, destino):
-    # 1. Calculamos SIEMPRE la lineal primero como seguro de vida
-    dist_lineal = round(geodesic(origen, destino).km, 2)
-    
-    # 2. Intentamos la de carretera
     url = f"http://router.project-osrm.org/route/v1/driving/{origen[1]},{origen[0]};{destino[1]},{destino[0]}?overview=false"
     try:
-        r = requests.get(url, timeout=3)
+        r = requests.get(url, timeout=5)
         if r.status_code == 200:
-            data = r.json()
-            if 'routes' in data and len(data['routes']) > 0:
-                return round(data['routes'][0]['distance'] / 1000, 2), "🚗 Por Carretera"
-    except:
-        pass
-    
-    # 3. Si falla la carretera (o el server), devolvemos la lineal
-    return dist_lineal, "✈️ Línea Recta (Backup)"
+            return round(r.json()['routes'][0]['distance'] / 1000, 2), "🚗 Por Carretera"
+    except: pass
+    return round(geodesic(origen, destino).km, 2), "✈️ Línea Recta (Servidor ocupado)"
 
 def calcular_logistica_completa(cp_detectado, nombre_busqueda=""):
     cp = str(cp_detectado).strip()
@@ -452,10 +444,20 @@ with col_izq:
     st.subheader("📍 Datos del Envío")
     entrada = st.text_input("Destino (CP, Pueblo...):", placeholder="Ej: 27400 o Monforte")
     tipo_camion = st.selectbox("Selecciona Tipo Transporte:", ["ACARREO", "GRUA", "PEQUEÑO", "TRAILER"])
+    
+    # NUEVA LÓGICA DE ALERTA DE TRAILER EN TIEMPO REAL
+    confirmacion_acceso = "N/A"
+    if tipo_camion == "TRAILER":
+        st.error("🛑 REQUISITO OBLIGATORIO DE ACCESO")
+        confirmacion_acceso = st.selectbox("¿Entra el trailer en el domicilio?", ["Selecciona opción...", "SÍ, entra seguro", "NO entra / No sabe"])
+        if confirmacion_acceso == "NO entra / No sabe":
+            st.warning("⚠️ Si no entra, valorar cambio a RÍGIDO o ACARREO.")
+
     btn_calc = st.button("🔍 Calcular Ruta", type="primary")
 
     if btn_calc and entrada:
         st.session_state['tipo_transporte_seleccionado'] = tipo_camion
+        st.session_state['confirmacion_acceso'] = confirmacion_acceso
         
         with st.spinner("Analizando datos..."):
             target_coords, target_name, cp_final = None, "", ""
@@ -531,6 +533,17 @@ with col_izq:
     if st.session_state['logistica_transporte']:
         zona_txt, bg_color = st.session_state['zona_info'] if st.session_state['zona_info'] else ("-", "#fff")
         
+        # Preparamos el HTML de la alerta si es necesario
+        alerta_html = ""
+        if st.session_state['tipo_transporte_seleccionado'] == "TRAILER":
+             alerta_html = f"""
+             <div style='background-color: #ffebee; color: #c62828; padding: 10px; border-radius: 5px; margin-top: 10px; border: 1px solid #ef9a9a;'>
+                <strong>🚨 ATENCIÓN TRAILER:</strong><br>
+                1. Poner mensaje en PYXIS: Llamar a Ciquillo 48h antes.<br>
+                2. Acceso Domicilio: <strong>{st.session_state['confirmacion_acceso']}</strong>
+             </div>
+             """
+        
         st.markdown(f"""
         <div style='background-color: {bg_color}; padding: 15px; border-radius: 10px; border: 1px solid #ccc; color: black;'>
             <h3 style='margin-top:0;'>{st.session_state['target_name']}</h3>
@@ -544,12 +557,9 @@ with col_izq:
                 <tr><td colspan="2"><hr></td></tr>
                 <tr><td>🏗️ <strong>Vehículo:</strong></td><td><strong>{st.session_state['tipo_transporte_seleccionado']}</strong></td></tr>
             </table>
+            {alerta_html}
         </div>
         """, unsafe_allow_html=True)
-        
-        # Alerta específica para TRAILER
-        if st.session_state['tipo_transporte_seleccionado'] == "TRAILER":
-            st.error("🚨 ATENCIÓN: Poner mensaje interno en PYXIS: Llamar a Ciquillo 48 horas antes")
         
         # NUEVA ALERTA PARA ACARREO
         if st.session_state['tipo_transporte_seleccionado'] == "ACARREO":
