@@ -371,7 +371,6 @@ def cargar_historial():
         df['Ciudad_Clean'] = df['Ciudad_Clean'].astype(str).str.strip().str.upper()
         
         # --- CORRECCIÓN DE ORDENAMIENTO (OURENSE CAPITAL vs PUEBLO) ---
-        # Convertimos la columna de pedidos a numérico para que "162" sea mayor que "9"
         if 'Num_Pedidos_Historico' in df.columns:
             df['Num_Pedidos_Historico'] = pd.to_numeric(df['Num_Pedidos_Historico'], errors='coerce').fillna(0)
             df = df.sort_values(by='Num_Pedidos_Historico', ascending=False)
@@ -419,8 +418,6 @@ def calcular_logistica_completa(cp_detectado, nombre_busqueda=""):
              match = df_historial[df_historial['Ciudad_Clean'].str.contains(nombre_busqueda, na=False)]
 
         if not match.empty:
-            # Como ya ordenamos el DataFrame al cargarlo, el primer resultado (iloc[0])
-            # será siempre el destino más frecuente (el "bueno").
             dia = match.iloc[0]['Dia_Asignado']
             ruta = match.iloc[0]['Ruta_Asignada']
             st.session_state['encontrado_en_historial'] = True
