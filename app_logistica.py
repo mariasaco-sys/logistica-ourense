@@ -14,7 +14,7 @@ import random
 st.set_page_config(page_title="Logística Ourense Pro", layout="wide")
 
 st.title("🚛 Calculadora Logística Ourense")
-st.markdown("Sistema de gestión de rutas con control de acceso para Trailers.")
+st.markdown("Sistema de gestión de rutas, asignación de agencias y alertas operativas.")
 
 # --- 1. BASE DE DATOS DE COORDENADAS (RESPALDO DE SEGURIDAD) ---
 COORDENADAS_FIJAS = {
@@ -382,13 +382,22 @@ origen_ourense = (42.3358, -7.8639)
 
 # --- 3. FUNCIONES DE CÁLCULO ---
 def obtener_distancia_carretera(origen, destino):
+    # 1. Calculamos SIEMPRE la lineal primero como seguro de vida
+    dist_lineal = round(geodesic(origen, destino).km, 2)
+    
+    # 2. Intentamos la de carretera
     url = f"http://router.project-osrm.org/route/v1/driving/{origen[1]},{origen[0]};{destino[1]},{destino[0]}?overview=false"
     try:
-        r = requests.get(url, timeout=5)
+        r = requests.get(url, timeout=3)
         if r.status_code == 200:
-            return round(r.json()['routes'][0]['distance'] / 1000, 2), "🚗 Por Carretera"
-    except: pass
-    return round(geodesic(origen, destino).km, 2), "✈️ Línea Recta (Servidor ocupado)"
+            data = r.json()
+            if 'routes' in data and len(data['routes']) > 0:
+                return round(data['routes'][0]['distance'] / 1000, 2), "🚗 Por Carretera"
+    except:
+        pass
+    
+    # 3. Si falla la carretera (o el server), devolvemos la lineal
+    return dist_lineal, "✈️ Línea Recta (Backup)"
 
 def calcular_logistica_completa(cp_detectado, nombre_busqueda=""):
     cp = str(cp_detectado).strip()
