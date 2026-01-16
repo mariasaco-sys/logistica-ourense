@@ -13,10 +13,35 @@ import random
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(page_title="Logística Ourense Pro", layout="wide")
 
-st.title("🚛 Calculadora Logística (Vehículos Especiales)")
-st.markdown("Asignación automática de agencia para Acarreos y Trailers.")
+st.title("🚛 Calculadora Logística (GPS Indestructible)")
+st.markdown("Sistema de coordenadas interno + Búsqueda online + Gestión de flotas.")
 
-# --- 0. DATOS HISTÓRICOS ---
+# --- 1. BASE DE DATOS DE COORDENADAS (RESPALDO DE SEGURIDAD) ---
+# Si falla internet, la app buscará aquí. Añadidos los principales de tu lista.
+COORDENADAS_FIJAS = {
+    "32001": (42.3358, -7.8639), "32002": (42.3358, -7.8639), "32003": (42.3358, -7.8639),
+    "32004": (42.3358, -7.8639), "32005": (42.3358, -7.8639), # Ourense Centro
+    "32900": (42.2965, -7.8676), "32901": (42.2965, -7.8676), # Polígono San Cibrao
+    "32911": (42.2965, -7.8676), "32910": (42.2965, -7.8676),
+    "27400": (42.5218, -7.5144), # Monforte
+    "27500": (42.6075, -7.7121), # Chantada
+    "32500": (42.4300, -8.0772), # Carballiño
+    "32400": (42.2878, -8.1430), # Ribadavia
+    "32630": (42.0634, -7.7257), # Xinzo
+    "32600": (41.9366, -7.4393), # Verín
+    "32300": (42.4168, -6.9839), "32315": (42.4168, -6.9839), # O Barco
+    "36500": (42.6617, -8.1132), # Lalín
+    "32660": (42.1911, -7.8016), # Allariz
+    "32700": (42.2706, -7.6517), # Maceda
+    "32800": (42.1517, -7.9575), # Celanova
+    "32130": (42.4736, -7.9825), # Cea
+    "32720": (42.3255, -7.6997), # Esgos
+    "32760": (42.3736, -7.4158), # Castro Caldelas
+    "32780": (42.3411, -7.2839), # Trives
+    "32570": (42.4627, -8.0261)  # Maside
+}
+
+# --- 2. DATOS HISTÓRICOS (CSV) ---
 CSV_DATA = """Ruta_Asignada,Código postal envío,Ciudad_Clean,Num_Pedidos_Historico,Dia_Asignado
 EJE ESTE (N-120),27400,MONFORTE DE LEMOS,29,Jueves
 EJE ESTE (N-120),27500,CHANTADA,15,Jueves
@@ -392,7 +417,13 @@ def calcular_logistica_completa(cp_detectado, nombre_busqueda=""):
     else: return "✈️ Red Nacional", "⏱️ 48/72h", "⚠️ Sí"
 
 def buscar_con_reintentos(query_dict_or_str, intentos=2):
-    # TRUCO ANTI-BLOQUEO: Creamos un User-Agent único cada vez con la hora
+    # Primero buscamos en la base de datos interna (BACKUP)
+    if isinstance(query_dict_or_str, dict) and "postalcode" in query_dict_or_str:
+        cp_backup = query_dict_or_str["postalcode"]
+        if cp_backup in COORDENADAS_FIJAS:
+            return type('obj', (object,), {'latitude': COORDENADAS_FIJAS[cp_backup][0], 'longitude': COORDENADAS_FIJAS[cp_backup][1], 'address': f"CP {cp_backup} (Interno)"})
+    
+    # Si no está en el backup, vamos a internet
     user_agent_unico = f"app_logistica_pro_{int(time.time())}_{random.randint(1,1000)}"
     geolocator = Nominatim(user_agent=user_agent_unico)
     
@@ -439,33 +470,37 @@ with col_izq:
             t, f, a = calcular_logistica_completa(cp_final, nombre_busqueda=entrada)
             
             # ----------------------------------------------------
-            #  LÓGICA DE VEHÍCULOS (OVERRIDES)
+            #  LÓGICA DE VEHÍCULOS (OVERRIDES) - JERARQUÍA
             # ----------------------------------------------------
             if tipo_camion == "TRAILER":
                 t = "🚛 Transportes Ciquillo"
-                # Mantenemos frecuencia y ruta calculada, solo cambia la agencia
+                # Mantenemos frecuencia calculada
             elif tipo_camion == "ACARREO":
-                t = "🚛 Martins dedicado"
-                f = "📅 Diaria (250km/día)" # Especificación de usuario
+                t = "🚛 Martins Dedicado"
+                f = "📅 Diaria (250km/día)"
             # ----------------------------------------------------
 
-            # 2. MAPA (INTENTO REFORZADO)
+            # 2. MAPA (INTENTO REFORZADO CON BACKUP INTERNO)
             loc = None
             if cp_final:
                 loc = buscar_con_reintentos({"postalcode": cp_final, "country": "Spain"})
             
             if not loc:
-                # Si falló por CP, intentamos por nombre libre
                 loc = buscar_con_reintentos(f"{entrada}, España")
                 if not loc: 
-                    # Intento reforzado: Nombre + Provincia (ayuda mucho a desbloquear)
-                    loc = buscar_con_reintentos(f"{entrada}, Pontevedra, España") # Por si es Lalin
+                    loc = buscar_con_reintentos(f"{entrada}, Pontevedra, España") 
                     if not loc:
                         loc = buscar_con_reintentos(f"{entrada}, Ourense, España")
 
             if loc:
                 target_coords = (loc.latitude, loc.longitude)
-                if not target_name: target_name = loc.address.split(",")[0]
+                if not target_name: 
+                    # Si viene de objeto geopy real tiene address
+                    if hasattr(loc, 'address'):
+                        target_name = loc.address.split(",")[0]
+                    else:
+                        target_name = f"Ubicación CP {cp_final}" # Viene del backup interno
+
                 km, tipo_calc = obtener_distancia_carretera(origen_ourense, target_coords)
                 
                 if km <= 20: zona_res = ("ZONA 1 (0-20km)", "#FFF9C4")
