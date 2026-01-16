@@ -8,13 +8,13 @@ from geopy.geocoders import Nominatim
 import requests
 import time
 import io
-import branca.element as macro # Necesario para la leyenda flotante
+import branca.element as macro 
 
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(page_title="Logística Ourense Pro", layout="wide")
 
-st.title("🚛 Calculadora Logística (Visualización Ejes)")
-st.markdown("Mapa interactivo con zonas de reparto, frecuencias y leyenda integrada.")
+st.title("🚛 Calculadora Logística (Zonas Reales)")
+st.markdown("Mapa con cobertura geográfica extendida para rutas largas (Verín, Barco, Lalín).")
 
 # --- 0. DATOS HISTÓRICOS ---
 CSV_DATA = """Ruta_Asignada,Código postal envío,Ciudad_Clean,Num_Pedidos_Historico,Dia_Asignado
@@ -342,7 +342,6 @@ def cargar_historial():
     try:
         df = pd.read_csv(io.StringIO(CSV_DATA))
         df['Código postal envío'] = df['Código postal envío'].astype(str)
-        # Limpieza para búsqueda por nombre
         df['Ciudad_Clean'] = df['Ciudad_Clean'].astype(str).str.strip().str.upper()
         return df
     except Exception as e:
@@ -366,23 +365,18 @@ def calcular_logistica_completa(cp_detectado, nombre_busqueda=""):
     cp = str(cp_detectado).strip()
     nombre_busqueda = nombre_busqueda.strip().upper()
     
-    # 1. BUSCAR EN HISTORIAL (Prioridad Máxima: Por CP o Por Nombre)
+    # 1. BUSCAR EN HISTORIAL
     if df_historial is not None:
-        # Intento A: Por CP exacto
         match = df_historial[df_historial['Código postal envío'] == cp]
-        
-        # Intento B: Por Nombre (si no hay CP o no hubo match por CP)
         if match.empty and nombre_busqueda:
-             # Buscamos si el nombre escrito está CONTENIDO en alguna ciudad del excel
              match = df_historial[df_historial['Ciudad_Clean'].str.contains(nombre_busqueda, na=False)]
 
         if not match.empty:
-            # Si encontramos coincidencia en el historial
             dia = match.iloc[0]['Dia_Asignado']
             ruta = match.iloc[0]['Ruta_Asignada']
             return "🚛 Transportes Martins", f"📅 {dia}", f"📍 Ruta: {ruta}"
 
-    # 2. SI NO ESTÁ EN HISTORIAL -> Lógica General
+    # 2. LOGICA GENERAL
     if not cp or not cp[0].isdigit(): return "❓ Consultar", "Depende destino", "❓"
     
     if cp.startswith("32"): return "🚛 Flota Propia / Martins", "⚡ Diaria", "❌ No"
@@ -390,7 +384,7 @@ def calcular_logistica_completa(cp_detectado, nombre_busqueda=""):
     else: return "✈️ Red Nacional", "⏱️ 48/72h", "⚠️ Sí"
 
 def buscar_con_reintentos(query_dict_or_str, intentos=2):
-    geolocator = Nominatim(user_agent="app_logistica_v11_hybrid")
+    geolocator = Nominatim(user_agent="app_logistica_v13_zones")
     for i in range(intentos):
         try:
             if i > 0: time.sleep(1)
@@ -407,10 +401,7 @@ col_izq, col_der = st.columns([1, 2])
 with col_izq:
     st.subheader("📍 Datos del Envío")
     entrada = st.text_input("Destino (CP, Pueblo...):", placeholder="Ej: 27400 o Monforte")
-    
-    # SELECCIÓN DE TIPO DE TRANSPORTE
     tipo_camion = st.selectbox("Selecciona Tipo Transporte:", ["ACARREO", "GRUA", "PEQUEÑO"])
-    
     btn_calc = st.button("🔍 Calcular Ruta", type="primary")
 
     if btn_calc and entrada:
@@ -419,45 +410,32 @@ with col_izq:
         with st.spinner("Buscando en historial y satélite..."):
             target_coords, target_name, cp_final = None, "", ""
             
-            # --- FASE 1: BÚSQUEDA RÁPIDA EN HISTORIAL (Por Nombre) ---
-            # Si el usuario escribe "Monforte", miramos antes de llamar a Internet
             historial_match = pd.DataFrame()
             if not entrada.isdigit() and df_historial is not None:
                  historial_match = df_historial[df_historial['Ciudad_Clean'].str.contains(entrada.strip().upper(), na=False)]
             
-            # Si encontramos el nombre en el Excel, usamos ese CP para guiar al GPS
-            query_gps = entrada # Por defecto buscamos lo que escribió el usuario
+            query_gps = entrada
             if not historial_match.empty:
-                # ¡Bingo! Encontrado en historial por nombre.
-                # Usamos el CP del historial para que el GPS no falle
                 cp_del_historial = str(historial_match.iloc[0]['Código postal envío'])
                 query_gps = {"postalcode": cp_del_historial, "country": "Spain"}
-                cp_final = cp_del_historial # Ya tenemos el CP seguro
+                cp_final = cp_del_historial 
             
-            # --- FASE 2: GEOLOCALIZACIÓN (GPS) ---
             loc = None
-            # Si ya definimos un query exacto (CP) lo usamos, si no, probamos lógica estándar
             if isinstance(query_gps, dict):
                 loc = buscar_con_reintentos(query_gps)
             elif entrada.isdigit() and len(entrada) == 5:
                 loc = buscar_con_reintentos({"postalcode": entrada, "country": "Spain"})
                 cp_final = entrada
             else:
-                # Búsqueda libre
                 loc = buscar_con_reintentos(f"{entrada}, España")
                 if not loc: loc = buscar_con_reintentos(f"{entrada}, Ourense, España")
-                # Intentar sacar CP del GPS si no lo teníamos
                 if not cp_final and loc and 'address' in loc.raw and 'postcode' in loc.raw['address']:
                     cp_final = loc.raw['address']['postcode']
 
             if loc:
                 target_coords = (loc.latitude, loc.longitude)
                 target_name = loc.address.split(",")[0]
-                
-                # --- FASE 3: CÁLCULOS FINALES ---
                 km, tipo_calc = obtener_distancia_carretera(origen_ourense, target_coords)
-                
-                # Pasamos tanto el CP como el Nombre escrito para asegurar el match en la función logística
                 t, f, a = calcular_logistica_completa(cp_final, nombre_busqueda=entrada)
                 
                 if km <= 20: zona_res = ("ZONA 1 (0-20km)", "#FFF9C4")
@@ -471,9 +449,8 @@ with col_izq:
                     'logistica_transporte': t, 'logistica_frecuencia': f, 'logistica_acarreo': a
                 })
             else:
-                st.warning("⚠️ Destino no encontrado. Prueba con el CP.")
+                st.warning("⚠️ Destino no encontrado.")
 
-    # RESULTADOS
     if st.session_state['target_coords']:
         zona_txt, bg_color = st.session_state['zona_info']
         st.markdown(f"""
@@ -493,35 +470,39 @@ with col_izq:
         """, unsafe_allow_html=True)
 
 with col_der:
-    st.subheader("🗺️ Mapa")
+    st.subheader("🗺️ Zonas de Reparto")
     m = folium.Map(location=origen_ourense, zoom_start=9)
-    # ---------------- DIBUJAR EJES (NUEVO VISUAL) ----------------
-    # Definimos las zonas visuales aproximadas
+    
+    # ---------------- DIBUJAR EJES (MULTI-ZONAS) ----------------
     EJES_CONFIG = {
-        "EJE NORTE": {"coords": [42.4300, -8.0700], "color": "blue", "freq": "Martes"},
-        "EJE SUR": {"coords": [42.0600, -7.7700], "color": "red", "freq": "Miércoles"},
-        "EJE ESTE": {"coords": [42.5000, -7.5000], "color": "green", "freq": "Jueves"},
-        "ZONA METRO": {"coords": [42.3358, -7.8639], "color": "purple", "freq": "Lun/Vie"}
+        "EJE NORTE": {"coords": [42.4300, -8.0700], "color": "blue", "freq": "Martes", "radius": 15000},
+        "EJE NORTE (Lalín)": {"coords": [42.6617, -8.1132], "color": "blue", "freq": "Martes", "radius": 12000},
+        
+        "EJE SUR (Xinzo)": {"coords": [42.0634, -7.7257], "color": "red", "freq": "Miércoles", "radius": 15000},
+        "EJE SUR (Verín)": {"coords": [41.9366, -7.4393], "color": "red", "freq": "Miércoles", "radius": 12000},
+        
+        "EJE ESTE (Monforte)": {"coords": [42.5218, -7.5144], "color": "green", "freq": "Jueves", "radius": 15000},
+        "EJE ESTE (Barco)": {"coords": [42.4168, -6.9839], "color": "green", "freq": "Jueves", "radius": 15000},
+        
+        "ZONA METRO": {"coords": [42.3358, -7.8639], "color": "purple", "freq": "Lun/Vie", "radius": 9000}
     }
     
-    # Dibujamos círculos representativos en el mapa
-    for eje, config in EJES_CONFIG.items():
+    for nombre, config in EJES_CONFIG.items():
         folium.Circle(
             location=config["coords"],
-            radius=15000 if eje != "ZONA METRO" else 8000, # Radio en metros
+            radius=config["radius"],
             color=config["color"],
             fill=True,
-            fill_opacity=0.2,
-            popup=f"<b>{eje}</b><br>Frecuencia: {config['freq']}"
+            fill_opacity=0.15,
+            popup=f"<b>{nombre}</b><br>{config['freq']}"
         ).add_to(m)
-        
-    # Leyenda Flotante HTML
+
     legend_html = '''
      <div style="position: fixed; 
      top: 10px; right: 10px; width: 170px; height: 140px; 
      border:2px solid grey; z-index:9999; font-size:14px;
-     background-color:white; opacity: 0.85; padding: 10px; border-radius: 5px;">
-     <b>Leyenda de Rutas</b><br>
+     background-color:white; opacity: 0.9; padding: 10px; border-radius: 5px;">
+     <b>Leyenda Rutas</b><br>
      <i style="background:purple; width:10px; height:10px; display:inline-block; border-radius:50%;"></i> Metro (Lun/Vie)<br>
      <i style="background:blue; width:10px; height:10px; display:inline-block; border-radius:50%;"></i> Norte (Martes)<br>
      <i style="background:red; width:10px; height:10px; display:inline-block; border-radius:50%;"></i> Sur (Miérc)<br>
