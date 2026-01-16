@@ -8,14 +8,15 @@ from geopy.geocoders import Nominatim
 import requests
 import time
 import io
+import random # Necesario para el truco anti-bloqueo
 
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(page_title="Logística Ourense Pro", layout="wide")
 
-st.title("🚛 Calculadora Logística (Modo Seguro)")
-st.markdown("Busca por CP o Nombre. Si el mapa falla, te muestra los datos de reparto igual.")
+st.title("🚛 Calculadora Logística (GPS Reforzado)")
+st.markdown("Calcula rutas reales y evita bloqueos del servidor de mapas.")
 
-# --- 0. DATOS HISTÓRICOS (Asegúrate de copiar hasta las comillas del final) ---
+# --- 0. DATOS HISTÓRICOS ---
 CSV_DATA = """Ruta_Asignada,Código postal envío,Ciudad_Clean,Num_Pedidos_Historico,Dia_Asignado
 EJE ESTE (N-120),27400,MONFORTE DE LEMOS,29,Jueves
 EJE ESTE (N-120),27500,CHANTADA,15,Jueves
@@ -386,10 +387,13 @@ def calcular_logistica_completa(cp_detectado, nombre_busqueda=""):
     else: return "✈️ Red Nacional", "⏱️ 48/72h", "⚠️ Sí"
 
 def buscar_con_reintentos(query_dict_or_str, intentos=2):
-    geolocator = Nominatim(user_agent="app_logistica_v16_fix")
+    # TRUCO ANTI-BLOQUEO: Creamos un User-Agent único cada vez con la hora
+    user_agent_unico = f"app_logistica_pro_{int(time.time())}_{random.randint(1,1000)}"
+    geolocator = Nominatim(user_agent=user_agent_unico)
+    
     for i in range(intentos):
         try:
-            if i > 0: time.sleep(1)
+            if i > 0: time.sleep(1.5)
             if isinstance(query_dict_or_str, dict):
                 return geolocator.geocode(query_dict_or_str, timeout=10)
             else:
@@ -428,14 +432,19 @@ with col_izq:
             
             t, f, a = calcular_logistica_completa(cp_final, nombre_busqueda=entrada)
             
-            # 2. MAPA
+            # 2. MAPA (INTENTO REFORZADO)
             loc = None
             if cp_final:
                 loc = buscar_con_reintentos({"postalcode": cp_final, "country": "Spain"})
             
             if not loc:
+                # Si falló por CP, intentamos por nombre libre
                 loc = buscar_con_reintentos(f"{entrada}, España")
-                if not loc: loc = buscar_con_reintentos(f"{entrada}, Ourense, España")
+                if not loc: 
+                    # Intento reforzado: Nombre + Provincia (ayuda mucho a desbloquear)
+                    loc = buscar_con_reintentos(f"{entrada}, Pontevedra, España") # Por si es Lalin
+                    if not loc:
+                        loc = buscar_con_reintentos(f"{entrada}, Ourense, España")
 
             if loc:
                 target_coords = (loc.latitude, loc.longitude)
