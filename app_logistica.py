@@ -13,8 +13,8 @@ import random
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(page_title="Logística Ourense Pro", layout="wide")
 
-st.title("🚛 Calculadora Logística (Lógica Ciquillo)")
-st.markdown("Calcula rutas y asigna agencia automáticamente según vehículo.")
+st.title("🚛 Calculadora Logística (Vehículos Especiales)")
+st.markdown("Asignación automática de agencia para Acarreos y Trailers.")
 
 # --- 0. DATOS HISTÓRICOS ---
 CSV_DATA = """Ruta_Asignada,Código postal envío,Ciudad_Clean,Num_Pedidos_Historico,Dia_Asignado
@@ -439,10 +439,14 @@ with col_izq:
             t, f, a = calcular_logistica_completa(cp_final, nombre_busqueda=entrada)
             
             # ----------------------------------------------------
-            #  AQUI ESTÁ LA LÓGICA DE CIQUILLO (OVERRIDE)
+            #  LÓGICA DE VEHÍCULOS (OVERRIDES)
             # ----------------------------------------------------
             if tipo_camion == "TRAILER":
                 t = "🚛 Transportes Ciquillo"
+                # Mantenemos frecuencia y ruta calculada, solo cambia la agencia
+            elif tipo_camion == "ACARREO":
+                t = "🚛 Martins dedicado"
+                f = "📅 Diaria (250km/día)" # Especificación de usuario
             # ----------------------------------------------------
 
             # 2. MAPA (INTENTO REFORZADO)
