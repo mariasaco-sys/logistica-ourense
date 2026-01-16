@@ -13,11 +13,11 @@ import random
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(page_title="Logística Ourense Pro", layout="wide")
 
-st.title("🚛 Calculadora Logística (GPS Indestructible)")
-st.markdown("Sistema de coordenadas interno + Búsqueda online + Gestión de flotas.")
+# --- CAMBIO DE TÍTULO AQUÍ ---
+st.title("🚛 Calculadora Logística Ourense")
+st.markdown("Sistema de gestión de rutas, asignación de agencias y cálculo de costes.")
 
 # --- 1. BASE DE DATOS DE COORDENADAS (RESPALDO DE SEGURIDAD) ---
-# Si falla internet, la app buscará aquí. Añadidos los principales de tu lista.
 COORDENADAS_FIJAS = {
     "32001": (42.3358, -7.8639), "32002": (42.3358, -7.8639), "32003": (42.3358, -7.8639),
     "32004": (42.3358, -7.8639), "32005": (42.3358, -7.8639), # Ourense Centro
@@ -41,7 +41,7 @@ COORDENADAS_FIJAS = {
     "32570": (42.4627, -8.0261)  # Maside
 }
 
-# --- 2. DATOS HISTÓRICOS (CSV) ---
+# --- 2. DATOS HISTÓRICOS ---
 CSV_DATA = """Ruta_Asignada,Código postal envío,Ciudad_Clean,Num_Pedidos_Historico,Dia_Asignado
 EJE ESTE (N-120),27400,MONFORTE DE LEMOS,29,Jueves
 EJE ESTE (N-120),27500,CHANTADA,15,Jueves
@@ -486,9 +486,11 @@ with col_izq:
                 loc = buscar_con_reintentos({"postalcode": cp_final, "country": "Spain"})
             
             if not loc:
+                # Si falló por CP, intentamos por nombre libre
                 loc = buscar_con_reintentos(f"{entrada}, España")
                 if not loc: 
-                    loc = buscar_con_reintentos(f"{entrada}, Pontevedra, España") 
+                    # Intento reforzado: Nombre + Provincia (ayuda mucho a desbloquear)
+                    loc = buscar_con_reintentos(f"{entrada}, Pontevedra, España") # Por si es Lalin
                     if not loc:
                         loc = buscar_con_reintentos(f"{entrada}, Ourense, España")
 
