@@ -554,16 +554,7 @@ with col_izq:
     if st.session_state['logistica_transporte']:
         zona_txt, bg_color = st.session_state['zona_info'] if st.session_state['zona_info'] else ("-", "#fff")
         
-        # Preparamos el HTML de la alerta si es necesario
-        alerta_html = ""
-        if st.session_state['tipo_transporte_seleccionado'] == "TRAILER":
-             alerta_html = f"""
-             <div style='background-color: #ffebee; color: #c62828; padding: 10px; border-radius: 5px; margin-top: 10px; border: 1px solid #ef9a9a;'>
-                <strong>🚨 ATENCIÓN TRAILER:</strong><br>
-                1. Poner mensaje en PYXIS: Llamar a Ciquillo 48h antes.<br>
-                2. Acceso Domicilio: <strong>{st.session_state['confirmacion_acceso']}</strong>
-             </div>
-             """
+        # Preparamos el HTML de la alerta si es necesario (SEPARADO)
         
         st.markdown(f"""
         <div style='background-color: {bg_color}; padding: 15px; border-radius: 10px; border: 1px solid #ccc; color: black;'>
@@ -578,9 +569,18 @@ with col_izq:
                 <tr><td colspan="2"><hr></td></tr>
                 <tr><td>🏗️ <strong>Vehículo:</strong></td><td><strong>{st.session_state['tipo_transporte_seleccionado']}</strong></td></tr>
             </table>
-            {alerta_html}
         </div>
         """, unsafe_allow_html=True)
+        
+        # ALERTAS (SEPARADAS PARA QUE NO FALLEN)
+        if st.session_state['tipo_transporte_seleccionado'] == "TRAILER":
+             st.markdown(f"""
+             <div style='background-color: #ffebee; color: #c62828; padding: 10px; border-radius: 5px; margin-top: 10px; border: 1px solid #ef9a9a;'>
+                <strong>🚨 ATENCIÓN TRAILER:</strong><br>
+                1. Poner mensaje en PYXIS: Llamar a Ciquillo 48h antes.<br>
+                2. Acceso Domicilio: <strong>{st.session_state['confirmacion_acceso']}</strong>
+             </div>
+             """, unsafe_allow_html=True)
         
         # NUEVA ALERTA PARA ACARREO
         if st.session_state['tipo_transporte_seleccionado'] == "ACARREO":
