@@ -469,7 +469,7 @@ with col_izq:
     # NUEVA LÓGICA DE ALERTA DE TRAILER EN TIEMPO REAL
     confirmacion_acceso = "N/A"
     if tipo_camion == "TRAILER":
-        st.error("🛑 IMPORTANTE PREGUNTAR")
+        st.error("🛑 REQUISITO OBLIGATORIO DE ACCESO")
         confirmacion_acceso = st.selectbox("¿Entra el trailer en el domicilio?", ["Selecciona opción...", "SÍ, entra seguro", "NO entra / No sabe"])
         if confirmacion_acceso == "NO entra / No sabe":
             st.warning("⚠️ Si no entra, valorar cambio a RÍGIDO o ACARREO.")
@@ -558,8 +558,12 @@ with col_izq:
         alerta_html = ""
         if st.session_state['tipo_transporte_seleccionado'] == "TRAILER":
              alerta_html = f"""
+             <div style='background-color: #ffebee; color: #c62828; padding: 10px; border-radius: 5px; margin-top: 10px; border: 1px solid #ef9a9a;'>
+                <strong>🚨 ATENCIÓN TRAILER:</strong><br>
                 1. Poner mensaje en PYXIS: Llamar a Ciquillo 48h antes.<br>
-              
+                2. Acceso Domicilio: <strong>{st.session_state['confirmacion_acceso']}</strong>
+             </div>
+             """
         
         st.markdown(f"""
         <div style='background-color: {bg_color}; padding: 15px; border-radius: 10px; border: 1px solid #ccc; color: black;'>
@@ -625,4 +629,3 @@ with col_der:
         folium.PolyLine([origen_ourense, target], color="black", weight=3).add_to(m)
 
     st_folium(m, width="100%", height=600)
-
